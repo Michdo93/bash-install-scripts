@@ -11,7 +11,7 @@ sudo apt install openjdk-17-jdk openjdk-17-jre -y
 echo 'JAVA_HOME="/usr/lib/jvm/jdk-17"' | sudo tee -a /etc/environment
 
 # Ergänze PATH mit JAVA_HOME/bin
-echo 'export PATH=$PATH:$JAVA_HOME/bin' | sudo tee -a /etc/environment
+echo 'export PATH=$PATH:/usr/lib/jvm/jdk-17/bin' | sudo tee -a /etc/environment
 
 # Aktualisiere die Umgebungsvariablen
 source /etc/environment
