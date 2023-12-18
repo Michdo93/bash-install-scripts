@@ -4,33 +4,6 @@ sudo apt upgrade -y
 
 sudo apt install curl git wget net-tools -y
 
-# Jellyfin: Port 8096
-sudo apt install apt-transport-https
-sudo wget -O /usr/share/keyrings/jellyfin-archive-keyring.gpg https://repo.jellyfin.org/ubuntu/jellyfin-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/jellyfin-archive-keyring.gpg] https://repo.jellyfin.org/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/jellyfin.list
-
-sudo apt update
-sudo apt install jellyfin -y
-
-sudo systemctl start jellyfin.service
-sudo systemctl enable jellyfin.service
-
-# Plex Port 32400
-#wget https://downloads.plex.tv/plex-media-server-new/1.32.7.7621-871adbd44/debian/plexmediaserver_1.32.7.7621-871adbd44_amd64.deb
-#sudo dpkg -i plexmediaserver_1.32.7.7621-871adbd44_amd64.deb
-
-curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
-echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
-
-sudo apt update
-sudo apt install plexmediaserver -y
-
-sudo mkdir -p /opt/plexmedia/{movies,series}
-sudo chown -R plex: /opt/plexmedia
-
-sudo systemctl start plexmediaserver.service
-sudo systemctl enable plexmediaserver.service
-
 # Docker
 # Add Docker's official GPG key:
 sudo apt-get update
@@ -56,6 +29,8 @@ sudo systemctl start docker.service
 sudo systemctl enable docker.service
 sudo systemctl start containerd.service
 sudo systemctl enable containerd.service
+
+docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
 
 # EmulatorJS
 #docker pull lscr.io/linuxserver/emulatorjs:latest 
