@@ -8,7 +8,7 @@ sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" >
 wget -qO - http://www.webmin.com/jcameron-key.asc | apt-key add -
 
 apt update
-apt install webmin
+apt install webmin -y
 
 systemctl start webmin
 systemctl enable webmin
