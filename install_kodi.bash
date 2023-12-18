@@ -9,7 +9,7 @@ sudo add-apt-repository ppa:team-xbmc/ppa -y
 
 sudo apt update
 
-sudo apt install kodi kodi-bin
+sudo apt install kodi kodi-bin -y
 
 cat <<EOL > " /etc/systemd/system/kodi.service"
 [Unit]
