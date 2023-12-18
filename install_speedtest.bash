@@ -3,13 +3,14 @@ sudo apt update
 sudo apt upgrade -y
 
 sudo apt install curl git wget net-tools -y
-
+sudo apt-get install dos2unix
 sudo apt install apt-transport-https gnupg1 dirmngr lsb-release -y
 
 curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg >/dev/null
 
 echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee  /etc/apt/sources.list.d/speedtest.list
 
+sudo dos2unix /etc/apt/sources.list.d/speedtest.list
 sudo apt update
 
 sudo apt install speedtest -y
