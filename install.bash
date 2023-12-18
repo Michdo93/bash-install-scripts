@@ -6,25 +6,15 @@ skriptVerzeichnis="."
 # Array mit den Namen der Skripte im Verzeichnis
 skriptArray=("$skriptVerzeichnis/"*)
 
-# Ausgabe der vorhandenen Skripte
+# Ausgabe der vorhandenen Skripte mit Markierung
 echo "Verfügbare Skripte:"
 for skript in "${skriptArray[@]}"; do
-    echo "$(basename "$skript")"
-done
-
-# Array für ausgewählte Skripte
-ausgewaehlteSkripte=()
-
-# Interaktive Auswahl der Skripte
-while true; do
-    read -p "Welches Skript soll ausgeführt werden? (q zum Beenden): " auswahl
-    if [ "$auswahl" == "q" ]; then
-        break
-    fi
-    if [[ " ${skriptArray[@]} " =~ " ${skriptVerzeichnis}/$auswahl " ]]; then
-        ausgewaehlteSkripte+=("$auswahl")
-    else
-        echo "Ungültige Auswahl. Bitte erneut eingeben."
+    markierung=" "
+    echo -n "Möchten Sie $skript ausführen? (Y/n): "
+    read -n 1 markierung
+    echo
+    if [ "$markierung" == "Y" ] || [ "$markierung" == "y" ]; then
+        ausgewaehlteSkripte+=("$skript")
     fi
 done
 
