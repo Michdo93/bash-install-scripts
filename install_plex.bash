@@ -3,6 +3,7 @@ sudo apt update
 sudo apt upgrade -y
 
 sudo apt install curl git wget net-tools -y
+sudo apt-get install dos2unix
 
 # Plex Port 32400
 #wget https://downloads.plex.tv/plex-media-server-new/1.32.7.7621-871adbd44/debian/plexmediaserver_1.32.7.7621-871adbd44_amd64.deb
