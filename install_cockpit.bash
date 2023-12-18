@@ -4,7 +4,7 @@ sudo apt upgrade -y
 
 sudo apt install curl git wget net-tools -y
 
-sudo apt install cockpit
+sudo apt install cockpit -y
 
 sudo systemctl start cockpit
 sudo systemctl enable cockpit
