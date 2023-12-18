@@ -47,11 +47,25 @@ sudo a2enmod rewrite
 sudo systemctl restart apache2
 
 # Nextcloud abschließen
-sudo -u www-data php /var/www/html/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud"  --database-user "root" --database-pass "password" --admin-user "admin" --admin-pass "adminpassword"
+sudo -u www-data php /var/www/html/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud" --database-user "root" --database-pass "password" --admin-user "admin" --admin-pass "adminpassword"
 
-# Abschließende Nachricht
-echo "Nextcloud wurde erfolgreich installiert. Öffnen Sie http://your_domain_or_ip in Ihrem Browser."
+# Systemd-Dienst für Nextcloud erstellen
+cat <<EOL | sudo tee /etc/systemd/system/nextcloud.service
+[Unit]
+Description=Nextcloud
+After=network.target mariadb.service
 
-sudo cp -r nextcloud /var/www
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/php -S 0.0.0.0:8080 -t /var/www/html/nextcloud
+Restart=on-failure
 
-sudo chown -R www-data:www-data /var/www/nextcloud
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Systemd-Dienst aktivieren und starten
+sudo systemctl enable nextcloud.service
+sudo systemctl start nextcloud.service
