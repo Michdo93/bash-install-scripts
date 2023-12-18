@@ -56,7 +56,7 @@ deb-src http://packages.icinga.com/ubuntu icinga-focal main
 echo "$content" | sudo tee "$sources_list" > /dev/null
 
 sudo apt update
-sudo apt install icinga2 monitoring-plugins
+sudo apt install icinga2 monitoring-plugins -y
 
 sudo systemctl start icinga2
 sudo systemctl enable icinga2
@@ -65,7 +65,7 @@ sudo systemctl enable icinga2
 export DEBIAN_FRONTEND=noninteractive
 
 # Installiere icinga2-ido-mysql ohne interaktive Fragen
-sudo apt-get install -y icinga2-ido-mysql
+sudo apt-get install icinga2-ido-mysql -y
 
 # Setze die Interaktivität zurück (optional, je nach Bedarf)
 export DEBIAN_FRONTEND=dialog
