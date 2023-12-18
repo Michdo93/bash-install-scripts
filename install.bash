@@ -12,7 +12,7 @@ for skript in "${skriptArray[@]}"; do
     markierung=" "
 
     # Überprüfung, ob das Skript ausgeschlossen werden soll
-    if [[ "$skript" =~ .*_root\.bash$ ]] || [ "$(basename "$skript")" == "install.bash" ] || [ "$(basename "$skript")" == "README.md" ]; then
+    if [[ "$skript" =~ .*_root\.bash$ ]] || [ "$(basename "$skript")" == "install.bash" ] || [ "$(basename "$skript")" == "README.md" ] || [ "$(basename "$skript")" == "release_upgrade.bash" ]; then
         continue
     fi
     
