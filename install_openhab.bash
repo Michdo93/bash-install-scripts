@@ -8,10 +8,11 @@ sudo apt install curl git wget net-tools -y
 sudo apt install openjdk-17-jdk openjdk-17-jre -y
 
 # Setze JAVA_HOME
-echo 'JAVA_HOME="/usr/lib/jvm/jdk-17"' | sudo tee -a /etc/environment
+JAVA_HOME="/usr/lib/jvm/jdk-17"
+echo "JAVA_HOME=\"$JAVA_HOME\"" | sudo tee -a /etc/environment
 
-# Ergänze PATH mit JAVA_HOME/bin
-echo 'export PATH=$PATH:/usr/lib/jvm/jdk-17/bin' | sudo tee -a /etc/environment
+# Bearbeite die PATH-Zeile in /etc/environment
+sudo sed -i "/^PATH=/ s/\"$/:$JAVA_HOME\/bin\"/" /etc/environment
 
 # Aktualisiere die Umgebungsvariablen
 source /etc/environment
