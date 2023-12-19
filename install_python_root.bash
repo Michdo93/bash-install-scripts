@@ -5,7 +5,7 @@ apt upgrade -y
 apt install curl git wget net-tools -y
 
 apt install python2 python2-dev
-apt-get install python3 python3-dev
+apt install python3 python3-dev
 
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --install /usr/bin/python python /usr/bin/python3 2
