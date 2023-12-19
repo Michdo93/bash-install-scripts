@@ -87,7 +87,7 @@ sh -c "echo \"export ROS_HOSTNAME=localhost\" >> ~/.bashrc"
 
 source $HOME/.bashrc
 
-sudo apt-get install ros-melodic-joy ros-melodic-teleop-twist-joy \
+sudo apt install ros-melodic-joy ros-melodic-teleop-twist-joy \
   ros-melodic-teleop-twist-keyboard ros-melodic-laser-proc \
   ros-melodic-rgbd-launch ros-melodic-depthimage-to-laserscan \
   ros-melodic-rosserial-arduino ros-melodic-rosserial-python \
