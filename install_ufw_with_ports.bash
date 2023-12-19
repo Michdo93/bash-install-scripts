@@ -32,11 +32,11 @@ cat ufw_configuration.txt
 sudo sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
 wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -
 sudo apt update
-sudo apt install webmin
+sudo apt install webmin -y
 
 sudo systemctl start webmin
 sudo systemctl enable webmin
 
-sudo apt install webmin-ufw
+sudo apt install webmin-ufw -y
 
 sudo ufw allow 10000
