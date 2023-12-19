@@ -27,10 +27,3 @@ systemctl start docker.service
 systemctl enable docker.service
 systemctl start containerd.service
 systemctl enable containerd.service
-
-# Warten, bis Docker-Dienste vollständig initialisiert sind
-while ! docker info &>/dev/null; do
-    sleep 1
-done
-
-docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:lates
