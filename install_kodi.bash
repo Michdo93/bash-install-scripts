@@ -11,15 +11,15 @@ sudo apt update
 
 sudo apt install kodi kodi-bin -y
 
-cat <<EOL > " /etc/systemd/system/kodi.service"
+cat <<EOL > "/etc/systemd/system/kodi.service"
 [Unit]
 Description = Kodi Media Center
 After = remote-fs.target network-online.target
 Wants = network-online.target
 
 [Service]
-User = ubuntu
-Group = ubuntu
+User = $USER
+Group = $USER
 Type = simple
 ExecStart = /usr/bin/kodi-standalone
 Restart = on-abort
