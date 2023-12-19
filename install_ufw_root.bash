@@ -4,7 +4,7 @@ apt upgrade -y
 
 apt install curl git wget net-tools -y
 
-apt install ufw
+apt install ufw -y
 
 ufw enable
 ufw allow 80       # Beispiel für Port 80 (HTTP)
@@ -14,11 +14,11 @@ ufw allow 22      # Beispiel für SSH
 sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
 wget -qO - http://www.webmin.com/jcameron-key.asc | apt-key add -
 apt update
-apt install webmin
+apt install webmin -y
 
 systemctl start webmin
 systemctl enable webmin
 
-apt install webmin-ufw
+apt install webmin-ufw -y
 
 ufw allow 10000
