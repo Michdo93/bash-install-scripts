@@ -84,7 +84,7 @@ sh -c "echo \"export ROS_HOSTNAME=localhost\" >> ~/.bashrc"
 
 source $HOME/.bashrc
 
-sudo apt-get install ros-kinetic-joy ros-kinetic-teleop-twist-joy \
+sudo apt install ros-kinetic-joy ros-kinetic-teleop-twist-joy \
   ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc \
   ros-kinetic-rgbd-launch ros-kinetic-depthimage-to-laserscan \
   ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python \
