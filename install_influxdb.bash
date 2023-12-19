@@ -9,7 +9,7 @@ echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdat
 echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
 
 sudo apt update
-sudo apt-get install influxdb2 -y
+sudo apt install influxdb2 -y
 
 sudo systemctl start influxdb.service
 sudo systemctl enable influxdb.service
