@@ -29,17 +29,17 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install -y build-essential cmake git libboost-dev libboost-thread-dev libboost-system-dev libsqlite3-dev libssl-dev libcurl4-openssl-dev libusb-dev zlib1g-dev libudev-dev libreadline-dev libmosquitto-dev libmysqlclient-dev libjsoncpp-dev libwxgtk3.0-gtk3-dev
+run_command "apt install -y build-essential cmake git libboost-dev libboost-thread-dev libboost-system-dev libsqlite3-dev libssl-dev libcurl4-openssl-dev libusb-dev zlib1g-dev libudev-dev libreadline-dev libmosquitto-dev libmysqlclient-dev libjsoncpp-dev libwxgtk3.0-gtk3-dev" "$sudo_available"
 
 git clone --recursive https://github.com/domoticz/domoticz.git
 cd domoticz
 cmake -DCMAKE_BUILD_TYPE=Release .
 make -j$(nproc)
 
-sudo make install
+run_command "make install" "$sudo_available"
 
 # systemd-Service-Datei erstellen
-cat <<EOL | sudo tee /etc/systemd/system/domoticz.service
+cat <<EOL | run_command "tee /etc/systemd/system/domoticz.service" "$sudo_available"
 [Unit]
 Description=Domoticz Home Automation
 After=network.target
@@ -55,5 +55,5 @@ WorkingDirectory=/opt/domoticz
 WantedBy=multi-user.target
 EOL
 
-sudo systemctl start domoticz.service
-sudo systemctl enable domoticz.service
+run_command "systemctl start domoticz.service" "$sudo_available"
+run_command "systemctl enable domoticz.service" "$sudo_available"
