@@ -29,6 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install nfs-kernel-server -y
-sudo systemctl start nfs-kernel-server.service
-sudo systemctl enable nfs-kernel-server.service
+run_command "apt install nfs-kernel-server -y" "$sudo_available"
+
+run_command "systemctl start nfs-kernel-server.service" "$sudo_available"
+run_command "systemctl enable nfs-kernel-server.service" "$sudo_available"
