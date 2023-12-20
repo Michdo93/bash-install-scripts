@@ -29,6 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install samba samba-common-bin -y
-sudo systemctl start smbd.service
-sudo systemctl enable smbd.service
+run_command "apt install samba samba-common-bin -y" "$sudo_available"
+
+run_command "systemctl start smbd.service" "$sudo_available"
+run_command "systemctl enable smbd.service" "$sudo_available"
