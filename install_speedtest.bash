@@ -29,19 +29,19 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install apt-transport-https gnupg1 dirmngr lsb-release -y
+run_command "apt install apt-transport-https gnupg1 dirmngr lsb-release -y
 
-curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg >/dev/null
+curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | run_command "tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg >/dev/null" "$sudo_available"
 
-echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee  /etc/apt/sources.list.d/speedtest.list
+echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | run_command "tee /etc/apt/sources.list.d/speedtest.list" "$sudo_available"
 
-sudo apt update
-sudo apt install speedtest -y
+run_command "apt update" "$sudo_available"
+run_command "apt install speedtest -y" "$sudo_available"
 
 touch /home/pi/speedtest.py
 mkdir /home/pi/speedtest
 
-cat <<EOL > "/home/pi/speedtest.py"
+cat <<EOL > tee /home/pi/speedtest.py"
 import re
 import subprocess
 from influxdb import InfluxDBClient
@@ -79,22 +79,19 @@ EOL
 
 # install influxdb
 
-sudo apt update
-sudo apt upgrade -y
+run_command "apt update" "$sudo_available"
+run_command "apt upgrade -y" "$sudo_available"
 
-curl https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | sudo tee /usr/share/keyrings/influxdb-archive-keyring.gpg >/dev/null
+curl https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | run_command "tee /usr/share/keyrings/influxdb-archive-keyring.gpg >/dev/null" "$sudo_available"
 
-echo "deb [signed-by=/usr/share/keyrings/influxdb-archive-keyring.gpg] https://repos.influxdata.com/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+echo "deb [signed-by=/usr/share/keyrings/influxdb-archive-keyring.gpg] https://repos.influxdata.com/debian $(lsb_release -cs) stable" | run_command "tee /etc/apt/sources.list.d/influxdb.list" "$sudo_available"
 
-sudo apt update
-sudo apt install influxdb2 -y
+run_command "apt update" "$sudo_available"
+run_command "apt install influxdb2 -y" "$sudo_available"
 
-sudo systemctl unmask influxdb.service
-sudo systemctl start influxdb.service
-sudo systemctl enable influxdb.service
-
-
-#!/bin/bash
+run_command "systemctl unmask influxdb.service" "$sudo_available"
+run_command "systemctl start influxdb.service" "$sudo_available"
+run_command "systemctl enable influxdb.service" "$sudo_available"
 
 # Setze die InfluxDB-Zugangsdaten
 INFLUXDB_HOST="localhost"
@@ -112,6 +109,6 @@ for COMMAND in "${COMMANDS[@]}"; do
     echo "$COMMAND" | influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -username "$INFLUXDB_USERNAME" -password "$INFLUXDB_PASSWORD"
 done
 
-sudo apt install python3-influxdb -y
+run_command "apt install python3-influxdb -y"" "$sudo_available"
 
-echo '*/30 * * * * pi python3 /home/pi/speedtest.py' | sudo tee -a /etc/crontab
+echo '*/30 * * * * pi python3 /home/pi/speedtest.py' | run_command "tee -a /etc/crontab" "$sudo_available"
