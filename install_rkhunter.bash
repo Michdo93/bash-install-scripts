@@ -29,8 +29,8 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install rkhunter -y
-sudo apt install mailutils -y
+run_command "apt install rkhunter -y" "$sudo_available"
+run_command "apt install mailutils -y" "$sudo_available"
 
-echo '10 3 * * * root /usr/bin/rkhunter --cronjob' | sudo tee -a /etc/crontab
-echo '@reboot root /usr/bin/rkhunter -c' | sudo tee -a /etc/crontab
+echo '10 3 * * * root /usr/bin/rkhunter --cronjob' | run_command "tee -a /etc/crontab" "$sudo_available"
+echo '@reboot root /usr/bin/rkhunter -c' | run_command "tee -a /etc/crontab" "$sudo_available"
