@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install isc-dhcp-server -y
+run_command "apt install isc-dhcp-server -y" "$sudo_available"
 
-sudo systemctl start isc-dhcp-server
-sudo systemctl enable isc-dhcp-server
+run_command "systemctl start isc-dhcp-server" "$sudo_available"
+run_command "systemctl enable isc-dhcp-server" "$sudo_available"
