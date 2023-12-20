@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt-get install chkrootkit -y
+run_command "apt-get install chkrootkit -y" "$sudo_available"
 
-echo '10 3 * * * root /usr/bin/chkrootkit' | sudo tee -a /etc/crontab
-echo '@reboot root /usr/bin/chkrootkit' | sudo tee -a /etc/crontab
+run_command "echo '10 3 * * * root /usr/bin/chkrootkit' | $(if [ -n "$sudo_available" ]; then echo "sudo tee -a /etc/crontab"; else echo "tee -a /etc/crontab"; fi)" "$sudo_available"
+run_command "echo '@reboot root /usr/bin/chkrootkit' | $(if [ -n "$sudo_available" ]; then echo "sudo tee -a /etc/crontab"; else echo "tee -a /etc/crontab"; fi)" "$sudo_available"
