@@ -29,4 +29,4 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install open-vm-tools open-vm-tools-desktop -y
+run_command "apt install open-vm-tools open-vm-tools-desktop -y" "$sudo_available"
