@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install bind9 -y
+run_command "apt install bind9 -y" "$sudo_available"
 
-sudo systemctl start bind9.service
-sudo systemctl enable bind9.service
+run_command "systemctl start bind9.service" "$sudo_available"
+run_command "systemctl enable bind9.service" "$sudo_available"
