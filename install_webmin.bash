@@ -29,11 +29,11 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
-wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -
+run_command "sh -c 'echo \deb http://download.webmin.com/download/repository sarge contrib\ > /etc/apt/sources.list.d/webmin.list'" "$sudo_available"
+wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -" "$sudo_available"
 
-sudo apt update
-sudo apt install webmin -y
+run_command "apt update" "$sudo_available"
+run_command "apt install webmin -y" "$sudo_available"
 
-sudo systemctl start webmin
-sudo systemctl enable webmin
+run_command "systemctl start webmin" "$sudo_available"
+run_command "systemctl enable webmin" "$sudo_available"
