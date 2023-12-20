@@ -29,12 +29,12 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install -y software-properties-common
-sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+run_command "apt install -y software-properties-common" "$sudo_available"
+run_command "add-apt-repository \"deb https://packages.grafana.com/oss/deb stable main\"" "$sudo_available"
 wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-sudo apt update
-sudo apt install -y grafana
+run_command "apt update" "$sudo_available"
+run_command "apt install -y grafana" "$sudo_available"
 
 # Grafana-Dienst starten und aktivieren
-sudo systemctl start grafana-server
-sudo systemctl enable grafana-server
+run_command "systemctl start grafana-server" "$sudo_available"
+run_command "systemctl enable grafana-server" "$sudo_available"
