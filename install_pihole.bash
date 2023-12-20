@@ -29,8 +29,8 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo wget -O basic-install.sh https://install.pi-hole.net
-sudo bash basic-install.sh
+run_command "wget -O basic-install.sh https://install.pi-hole.net" "$sudo_available"
+run_command "bash basic-install.sh" "$sudo_available"
 
 # Pfad zu Pi-hole-Adlisten
 adlists_dir="/etc/pihole"
@@ -80,15 +80,15 @@ for adlist_url in "${adlist_urls[@]}"; do
 done
 
 # Aktualisiere Pi-hole, um die neuen Adlisten zu berücksichtigen
-sudo pihole -g
+run_command "pihole -g" "$sudo_available"
 
 cd /opt/
-sudo git clone https://github.com/anudeepND/whitelist.git
-sudo python3 whitelist/scripts/whitelist.py
+run_command "git clone https://github.com/anudeepND/whitelist.git" "$sudo_available"
+run_command "python3 whitelist/scripts/whitelist.py" "$sudo_available"
 
-echo '0 23 * * 7 root /opt/whitelist/scripts/whitelist.py' | sudo tee -a /etc/crontab
+echo '0 23 * * 7 root /opt/whitelist/scripts/whitelist.py' | run_command "tee -a /etc/crontab" "$sudo_available"
 
-sudo pihole -w \
+run_command "pihole -w \
 accounts.google.com \
 bit.ly \
 doodle.com \
@@ -102,4 +102,4 @@ sourceforge.net \
 twitter.com \
 v.shopify.com \
 versus.com \
-www.paypalobjects.com \
+www.paypalobjects.com \" "$sudo_available"
