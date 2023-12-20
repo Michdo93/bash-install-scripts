@@ -35,4 +35,4 @@ source ~/.bashrc
 
 nvm install --lts
 
-sudo npm install pm2 -g
+run_command "npm install pm2 -g" "$sudo_available"
