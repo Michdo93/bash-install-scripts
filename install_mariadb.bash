@@ -29,9 +29,9 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install mariadb-server -y
+run_command "apt install mariadb-server -y" "$sudo_available"
 
-sudo mysql_secure_installation
+run_command "mysql_secure_installation" "$sudo_available"
 
-sudo systemctl start mariadb.service
-sudo systemctl enable mariadb.service
+run_command "systemctl start mariadb.service" "$sudo_available"
+run_command "systemctl enable mariadb.service" "$sudo_available"
