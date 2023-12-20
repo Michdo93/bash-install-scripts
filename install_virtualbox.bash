@@ -29,13 +29,13 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install virtualbox virtualbox-qt virtualbox-dkms -y
+run_command "apt install virtualbox virtualbox-qt virtualbox-dkms -y" "$sudo_available"
 
-sudo adduser $USER vboxusers
+run_command "adduser $USER vboxusers" "$sudo_available"
 newgrp - vboxusers
 
-sudo apt install virtualbox-guest-additions-iso -y
+run_command "apt install virtualbox-guest-additions-iso -y" "$sudo_available"
 
-sudo apt install virtualbox-guest-x11 -y
+run_command "apt install virtualbox-guest-x11 -y" "$sudo_available"
 
-sudo apt install virtualbox-ext-pack -y
+run_command "apt install virtualbox-ext-pack -y" "$sudo_available"
