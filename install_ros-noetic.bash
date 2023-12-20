@@ -44,15 +44,15 @@ name_ros_version=${name_ros_version:="noetic"}
 name_catkin_workspace=${name_catkin_workspace:="catkin_ws"}
 
 echo "[Update the package lists]"
-sudo apt update -y
+run_command "apt update -y" "$sudo_available"
 
 echo "[Install build environment, the chrony, ntpdate and set the ntpdate]"
-sudo apt install -y chrony ntpdate curl build-essential
-sudo ntpdate ntp.ubuntu.com
+run_command "apt install -y chrony ntpdate curl build-essential" "$sudo_available"
+run_command "ntpdate ntp.ubuntu.com" "$sudo_available"
 
 echo "[Add the ROS repository]"
 if [ ! -e /etc/apt/sources.list.d/ros-latest.list ]; then
-  sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\" > /etc/apt/sources.list.d/ros-latest.list"
+  run_command "sh -c \"echo \\"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\\" > /etc/apt/sources.list.d/ros-latest.list\"" "$sudo_available"
 fi
 
 echo "[Download the ROS keys]"
@@ -71,23 +71,23 @@ else
 fi
 
 echo "[Update the package lists]"
-sudo apt update -y
+run_command "sudo apt update -y" "$sudo_available"
 
 echo "[Install ros-desktop-full version of Noetic"
-sudo apt install -y ros-$name_ros_version-desktop-full
+run_command "sudo apt install -y ros-$name_ros_version-desktop-full" "$sudo_available"
 
 echo "[Install RQT & Gazebo]"
-sudo apt install -y ros-$name_ros_version-rqt-* ros-$name_ros_version-gazebo-*
+run_command "sudo apt install -y ros-$name_ros_version-rqt-* ros-$name_ros_version-gazebo-*" "$sudo_available"
 
 echo "[Environment setup and getting rosinstall]"
 source /opt/ros/$name_ros_version/setup.sh
-sudo apt install -y python3-rosinstall python3-rosinstall-generator python3-wstool build-essential git
+run_command "sudo apt install -y python3-rosinstall python3-rosinstall-generator python3-wstool build-essential git" "$sudo_available"
 
 echo "[Install rosdep and Update]"
-sudo apt install python3-rosdep
+run_command "sudo apt install python3-rosdep -y" "$sudo_available"
 
 echo "[Initialize rosdep and Update]"
-sudo sh -c "rosdep init"
+run_command "sh -c \"rosdep init\"" "$sudo_available"
 rosdep update
 
 echo "[Make the catkin workspace and test the catkin_make]"
@@ -114,14 +114,14 @@ sh -c "echo \"export ROS_HOSTNAME=localhost\" >> ~/.bashrc"
 
 source $HOME/.bashrc
 
-sudo apt install ros-noetic-joy ros-noetic-teleop-twist-joy \
+run_command "sudo apt install -y ros-noetic-joy ros-noetic-teleop-twist-joy \
   ros-noetic-teleop-twist-keyboard ros-noetic-laser-proc \
   ros-noetic-rgbd-launch ros-noetic-rosserial-arduino \
   ros-noetic-rosserial-python ros-noetic-rosserial-client \
   ros-noetic-rosserial-msgs ros-noetic-amcl ros-noetic-map-server \
   ros-noetic-move-base ros-noetic-urdf ros-noetic-xacro \
   ros-noetic-compressed-image-transport ros-noetic-rqt* ros-noetic-rviz \
-  ros-noetic-gmapping ros-noetic-navigation ros-noetic-interactive-markers
+  ros-noetic-gmapping ros-noetic-navigation ros-noetic-interactive-markers" "$sudo_available"
 
 echo "[Complete!!!]"
 exit 0
