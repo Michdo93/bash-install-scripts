@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install dropbear -y
+run_command "apt install dropbear -y" "$sudo_available"
 
-sudo systemctl start dropbear.service
-sudo systemctl enable dropbear.service
+run_command "systemctl start dropbear.service" "$sudo_available"
+run_command "systemctl enable dropbear.service" "$sudo_available"
