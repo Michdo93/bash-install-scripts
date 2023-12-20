@@ -29,23 +29,23 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install apache2 mariadb-server libapache2-mod-php php-gd php-mysql php-curl php-mbstring php-intl php-gmp php-bcmath php-xml php-imagick php-zip -y
+run_command "apt install apache2 mariadb-server libapache2-mod-php php-gd php-mysql php-curl php-mbstring php-intl php-gmp php-bcmath php-xml php-imagick php-zip -y" "$sudo_available"
 
 ./install_mysql.bash
 
 # Nextcloud herunterladen und extrahieren
 wget https://download.nextcloud.com/server/releases/latest.tar.bz2
 tar -xvjf latest.tar.bz2
-sudo mv nextcloud /var/www/html/
-sudo chown -R www-data:www-data /var/www/html/nextcloud/
-sudo chmod -R 755 /var/www/html/nextcloud/
+run_command "mv nextcloud /var/www/html/" "$sudo_available"
+run_command "chown -R www-data:www-data /var/www/html/nextcloud/" "$sudo_available"
+run_command "chmod -R 755 /var/www/html/nextcloud/" "$sudo_available"
 
 # Apache-Konfiguration für Nextcloud erstellen
 # Den aktuellen Hostnamen abrufen
 host_name=$(hostname)
 
 # Apache VirtualHost-Konfiguration erstellen
-cat <<EOL | sudo tee /etc/apache2/sites-available/nextcloud.conf
+cat <<EOL | run_command "tee /etc/apache2/sites-available/nextcloud.conf" "$sudo_available"
 <VirtualHost *:80>
     ServerAdmin webmaster@$host_name
     DocumentRoot /var/www/html/nextcloud
@@ -65,15 +65,15 @@ cat <<EOL | sudo tee /etc/apache2/sites-available/nextcloud.conf
 </VirtualHost>
 EOL
 
-sudo a2ensite nextcloud.conf
-sudo a2enmod rewrite
-sudo systemctl restart apache2
+run_command "a2ensite nextcloud.conf" "$sudo_available"
+run_command "a2enmod rewrite" "$sudo_available"
+run_command "systemctl restart apache2" "$sudo_available"
 
 # Nextcloud abschließen
-sudo -u www-data php /var/www/html/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud" --database-user "root" --database-pass "password" --admin-user "admin" --admin-pass "adminpassword"
+run_command "-u www-data php /var/www/html/nextcloud/occ maintenance:install --database \"mysql\" --database-name \"nextcloud\" --database-user \"root\" --database-pass \"password\" --admin-user \"admin\" --admin-pass \"adminpassword\"" "$sudo_available"
 
 # Systemd-Dienst für Nextcloud erstellen
-cat <<EOL | sudo tee /etc/systemd/system/nextcloud.service
+cat <<EOL | run_command "tee /etc/systemd/system/nextcloud.service" "$sudo_available"
 [Unit]
 Description=Nextcloud
 After=network.target mariadb.service
@@ -90,5 +90,5 @@ WantedBy=multi-user.target
 EOL
 
 # Systemd-Dienst aktivieren und starten
-sudo systemctl enable nextcloud.service
-sudo systemctl start nextcloud.service
+run_command "systemctl enable nextcloud.service" "$sudo_available"
+run_command "systemctl start nextcloud.service" "$sudo_available"
