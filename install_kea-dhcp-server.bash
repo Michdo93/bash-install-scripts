@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install kea-dhcp4-server -y
+run_command "apt install kea-dhcp4-server -y" "$sudo_available"
 
-sudo systemctl start kea-dhcp4-server
-sudo systemctl enable kea-dhcp4-server
+run_command "systemctl start kea-dhcp4-server" "$sudo_available"
+run_command "systemctl enable kea-dhcp4-server" "$sudo_available"
