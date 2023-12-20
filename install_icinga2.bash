@@ -49,12 +49,12 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install apache2 mariadb-server mariadb-client mariadb-common php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y
+run_command "apt install apache2 mariadb-server mariadb-client mariadb-common php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
 
-sudo systemctl start {apache2,mariadb}
-sudo systemctl enable {apache2,mariadb}
+run_command "systemctl start {apache2,mariadb}" "$sudo_available"
+run_command "systemctl enable {apache2,mariadb}" "$sudo_available"
 
-sudo mysql_secure_installation
+run_command "mysql_secure_installation" "$sudo_available"
 
 # Überprüfe die Ubuntu-Version und wende die Änderungen an
 if [[ $ubuntu_version == "22.04" ]]; then
@@ -65,8 +65,8 @@ else
     echo "Nicht unterstützte Ubuntu-Version."
 fi
 
-sudo systemctl restart apache2
-sudo systemctl enable apache2
+run_command "systemctl restart apache2" "$sudo_available"
+run_command "systemctl enable apache2" "$sudo_available"
 
 curl https://packages.icinga.com/icinga.key | apt-key add -
 
@@ -77,19 +77,19 @@ deb-src http://packages.icinga.com/ubuntu icinga-focal main
 "
 
 # Erstelle die Datei und füge den Inhalt ein
-echo "$content" | sudo tee "$sources_list" > /dev/null
+echo "$content" | run_command "tee \"$sources_list\" > /dev/null
 
-sudo apt update
-sudo apt install icinga2 monitoring-plugins -y
+run_command "apt update" "$sudo_available"
+run_command "apt install icinga2 monitoring-plugins -y" "$sudo_available"
 
-sudo systemctl start icinga2
-sudo systemctl enable icinga2
+run_command "systemctl start icinga2" "$sudo_available"
+run_command "systemctl enable icinga2" "$sudo_available"
 
 # Setze DEBIAN_FRONTEND auf noninteractive, um interaktive Fragen zu verhindern
 export DEBIAN_FRONTEND=noninteractive
 
 # Installiere icinga2-ido-mysql ohne interaktive Fragen
-sudo apt-get install icinga2-ido-mysql -y
+run_command "apt-get install icinga2-ido-mysql -y" "$sudo_available"
 
 # Setze die Interaktivität zurück (optional, je nach Bedarf)
 export DEBIAN_FRONTEND=dialog
@@ -107,25 +107,25 @@ EXIT;
 "
 
 # Ausführung der MySQL-Befehle
-echo "$mysql_commands" | sudo mysql -u"$mysql_user" -p"$mysql_password"
+echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p \"$mysql_password\"" "$sudo_available"
 
-sudo mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schema/mysql.sql
+run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schema/mysql.sql" "$sudo_available"
 
 # Anpassungen in der ido-mysql.conf-Datei
 ido_mysql_conf="/etc/icinga2/features-available/ido-mysql.conf"
-sudo sed -i "s/^library.*$/library \"db_ido_mysql\"/" "$ido_mysql_conf"
-sudo sed -i "s/^object.*IDOConnection.*$/object IdoMysqlConnection \"ido-mysql\" \{/" "$ido_mysql_conf"
-sudo sed -i "s/^.*user.*=.*$/  user = \"icinga_ido_user\",/" "$ido_mysql_conf"
-sudo sed -i "s/^.*password.*=.*$/  password = \"Password321\",/" "$ido_mysql_conf"
-sudo sed -i "s/^.*host.*=.*$/  host = \"localhost\",/" "$ido_mysql_conf"
-sudo sed -i "s/^.*database.*=.*$/  database = \"icinga_ido_db\",/" "$ido_mysql_conf"
-sudo sed -i "s/^.*}/\}/" "$ido_mysql_conf"
+run_command "sed -i \"s/^library.*$/library \\"db_ido_mysql\\"/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^object.*IDOConnection.*$/object IdoMysqlConnection \\"ido-mysql\\" \{/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido_user\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*password.*=.*$/  password = \\"Password321\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*host.*=.*$/  host = \\"localhost\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*}/\}/\" \"$ido_mysql_conf\"" "$sudo_available"
 
-sudo icinga2 feature enable ido-mysql
+run_command "icinga2 feature enable ido-mysql" "$sudo_available"
 
-sudo systemctl restart icinga2 
+run_command "systemctl restart icinga2" "$sudo_available"
 
-sudo apt install icingaweb2 icingacli -y
+run_command "apt install icingaweb2 icingacli -y" "$sudo_available"
 
 
 # MySQL-Befehle
@@ -137,12 +137,12 @@ EXIT;
 "
 
 # Ausführung der MySQL-Befehle
-echo "$mysql_commands" | sudo mysql -u"$mysql_user" -p"$mysql_password"
+echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p \"$mysql_password\"" "$sudo_available"
 
 # Erstelle das Token
-icingacli_output=$(sudo icingacli setup token create)
+icingacli_output=$(run_command"icingacli setup token create" "$sudo_available")
 
 # Extrahiere das Token
 icingacli_token=$(echo "$icingacli_output" | grep -oP 'The newly generated setup token is: \K.*')
 
-sudo apt upgrade -y
+run_command "apt upgrade -y" "$sudo_available"
