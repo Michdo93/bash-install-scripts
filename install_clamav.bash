@@ -29,8 +29,12 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install clamav clamav-freshclam -y
-sudo apt install clamav-docs -y
+run_command "apt install clamav clamav-freshclam -y" "$sudo_available"
+run_command "apt install clamav-docs -y" "$sudo_available"
 
-echo '10 3 * * * root /usr/bin/clamscan -ir / | /usr/bin/grep FOUND >> /home/ubuntu/clamavinfected.txt' | sudo tee -a /etc/crontab
-echo '@reboot root /usr/bin/clamscan -ir / | /usr/bin/grep FOUND >> /home/ubuntu/clamavinfected.txt' | sudo tee -a /etc/crontab
+run_command "echo '10 3 * * * root /usr/bin/clamscan -ir / | /usr/bin/grep FOUND >> /home/ubuntu/clamavinfected.txt | $(if [ -n "$sudo_available" ]; then echo "sudo tee -a /etc/crontab"; else echo "tee -a /etc/crontab"; fi)" "$sudo_available"
+run_command "echo '@reboot root /usr/bin/clamscan -ir / | /usr/bin/grep FOUND >> /home/ubuntu/clamavinfected.txt' | $(if [ -n "$sudo_available" ]; then echo "sudo tee -a /etc/crontab"; else echo "tee -a /etc/crontab"; fi)" "$sudo_
+
+
+
+
