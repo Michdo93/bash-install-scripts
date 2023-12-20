@@ -44,21 +44,21 @@ name_ros_version=${name_ros_version:="kinetic"}
 name_catkin_workspace=${name_catkin_workspace:="catkin_ws"}
 
 echo "[Update the package lists]"
-sudo apt-get update -y
+run_command "apt-get update -y" "$sudo_available"
 
 echo "[Install build environment, the chrony, ntpdate and set the ntpdate]"
-sudo apt-get install -y chrony ntpdate curl build-essential git
-sudo ntpdate ntp.ubuntu.com
+run_command "apt-get install -y chrony ntpdate curl build-essential git" "$sudo_available"
+run_command "ntpdate ntp.ubuntu.com" "$sudo_available"
 
 echo "[Add the ROS repository]"
 if [ ! -e /etc/apt/sources.list.d/ros-latest.list ]; then
-  sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\" > /etc/apt/sources.list.d/ros-latest.list"
+  run_command "sh -c \"echo \\"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\\" > /etc/apt/sources.list.d/ros-latest.list\"" "$sudo_available"
 fi
 
 echo "[Download the ROS keys]"
 roskey=`apt-key list | grep "Open Robotics"`
 if [ -z "$roskey" ]; then
-  curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+  curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | run_command "apt-key add -" "$sudo_available"
 fi
 
 echo "[Check the ROS keys]"
@@ -71,18 +71,18 @@ else
 fi
 
 echo "[Update the package lists]"
-sudo apt-get update -y
+run_command "apt-get update -y" "$sudo_available"
 
 echo "[Install the ros-desktop-full and all rqt plugins]"
-sudo apt-get install -y ros-$name_ros_version-desktop-full ros-$name_ros_version-rqt-*
+run_command "apt-get install -y ros-$name_ros_version-desktop-full ros-$name_ros_version-rqt-*" "$sudo_available"
 
 echo "[Initialize rosdep]"
-sudo sh -c "rosdep init"
+run_command "sh -c \"rosdep init\"" "$sudo_available"
 rosdep update
 
 echo "[Environment setup and getting rosinstall]"
 source /opt/ros/$name_ros_version/setup.sh
-sudo apt-get install -y python-rosinstall git
+run_command "apt-get install -y python-rosinstall git" "$sudo_available"
 
 echo "[Make the catkin workspace and test the catkin_make]"
 mkdir -p $HOME/$name_catkin_workspace/src
@@ -108,7 +108,7 @@ sh -c "echo \"export ROS_HOSTNAME=localhost\" >> ~/.bashrc"
 
 source $HOME/.bashrc
 
-sudo apt install ros-kinetic-joy ros-kinetic-teleop-twist-joy \
+run_command "apt install -y ros-kinetic-joy ros-kinetic-teleop-twist-joy \
   ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc \
   ros-kinetic-rgbd-launch ros-kinetic-depthimage-to-laserscan \
   ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python \
@@ -116,7 +116,7 @@ sudo apt install ros-kinetic-joy ros-kinetic-teleop-twist-joy \
   ros-kinetic-rosserial-msgs ros-kinetic-amcl ros-kinetic-map-server \
   ros-kinetic-move-base ros-kinetic-urdf ros-kinetic-xacro \
   ros-kinetic-compressed-image-transport ros-kinetic-rqt* \
-  ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-interactive-markers
+  ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-interactive-markers" "$sudo_available"
 
 echo "[Complete!!!]"
 exit 0
