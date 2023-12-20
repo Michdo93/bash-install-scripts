@@ -29,15 +29,15 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install python2 python2-dev -y
-sudo apt install python3 python3-dev -y
+run_command "apt install python2 python2-dev -y" "$sudo_available"
+run_command "apt install python3 python3-dev -y" "$sudo_available"
 
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 0
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+run_command "update-alternatives --install /usr/bin/python python /usr/bin/python2 0" "$sudo_available"
+run_command "update-alternatives --install /usr/bin/python python /usr/bin/python3 1" "$sudo_available"
 
 #sudo update-alternatives --config python
 
 curl https://raw.githubusercontent.com/Michdo93/get-pip/main/get-pip.py -o get-pip.py
 python get-pip.py
 
-curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python3
+curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | run_command "python3" "$sudo_available"
