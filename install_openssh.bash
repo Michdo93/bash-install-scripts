@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install openssh-server openssh-client -y
+run_command "apt install openssh-server openssh-client -y" "$sudo_available"
 
-sudo systemctl start ssh
-sudo systemctl enable ssh
+run_command "systemctl start ssh" "$sudo_available"
+run_command "systemctl enable ssh" "$sudo_available"
