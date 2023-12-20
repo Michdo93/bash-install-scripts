@@ -31,14 +31,14 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 # Plex Port 32400
 
-curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
-echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+curl https://downloads.plex.tv/plex-keys/PlexSign.key | run_command "apt-key add -" "$sudo_available"
+echo deb https://downloads.plex.tv/repo/deb public main | run_command "tee /etc/apt/sources.list.d/plexmediaserver.list" "$sudo_available"
 
-sudo apt update
-sudo apt install plexmediaserver -y
+run_command "apt update" "$sudo_available"
+run_command "apt install plexmediaserver -y" "$sudo_available"
 
-sudo mkdir -p /opt/plexmedia/{movies,series}
-sudo chown -R plex: /opt/plexmedia
+run_command "mkdir -p /opt/plexmedia/{movies,series}" "$sudo_available"
+run_command "chown -R plex: /opt/plexmedia" "$sudo_available"
 
-sudo systemctl start plexmediaserver.service
-sudo systemctl enable plexmediaserver.service
+run_command "systemctl start plexmediaserver.service" "$sudo_available"
+run_command "systemctl enable plexmediaserver.service" "$sudo_available"
