@@ -1,5 +1,5 @@
 # bash-install-scripts
-A few bash installation scripts for Ubuntu
+A few bash installation scripts for Ubuntu, Raspbian and Debian.
 
 ```
 git clone https://github.com/Michdo93/bash-install-scripts
