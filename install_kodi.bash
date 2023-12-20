@@ -29,12 +29,12 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install ca-certificates apt-transport-https software-properties-common lsb-release -y
-sudo add-apt-repository ppa:team-xbmc/ppa -y
+run_command "apt install ca-certificates apt-transport-https software-properties-common lsb-release -y" "$sudo_available"
+run_command "add-apt-repository ppa:team-xbmc/ppa -y" "$sudo_available"
 
-sudo apt update
+run_command "apt update" "$sudo_available"
 
-sudo apt install kodi kodi-bin -y
+run_command "apt install kodi kodi-bin -y" "$sudo_available"
 
 cat <<EOL > "/etc/systemd/system/kodi.service"
 [Unit]
@@ -54,5 +54,5 @@ RestartSec = 5
 WantedBy = multi-user.target
 EOL
 
-sudo systemctl start kodi.service
-sudo systemctl enable kodi.service
+run_command "systemctl start kodi.service" "$sudo_available"
+run_command "systemctl enable kodi.service" "$sudo_available"
