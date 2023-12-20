@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install cockpit -y
+run_command "apt install cockpit -y" "$sudo_available"
 
-sudo systemctl start cockpit
-sudo systemctl enable cockpit
+run_command "systemctl start cockpit" "$sudo_available"
+run_command "systemctl enable cockpit" "$sudo_available"
