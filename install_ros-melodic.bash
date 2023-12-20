@@ -44,15 +44,15 @@ name_ros_version=${name_ros_version:="melodic"}
 name_catkin_workspace=${name_catkin_workspace:="catkin_ws"}
 
 echo "[Update the package lists]"
-sudo apt update -y
+run_command "apt update -y" "$sudo_available"
 
 echo "[Install build environment, the chrony, ntpdate and set the ntpdate]"
-sudo apt install -y chrony ntpdate curl build-essential
-sudo ntpdate ntp.ubuntu.com
+run_command "apt install -y chrony ntpdate curl build-essential" "$sudo_available"
+run_command "ntpdate ntp.ubuntu.com" "$sudo_available"
 
 echo "[Add the ROS repository]"
 if [ ! -e /etc/apt/sources.list.d/ros-latest.list ]; then
-  sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\" > /etc/apt/sources.list.d/ros-latest.list"
+  run_command "sh -c \"echo \\"deb http://packages.ros.org/ros/ubuntu ${name_os_version} main\\" > /etc/apt/sources.list.d/ros-latest.list\"" "$sudo_available"
 fi
 
 echo "[Download the ROS keys]"
@@ -71,20 +71,20 @@ else
 fi
 
 echo "[Update the package lists]"
-sudo apt update -y
+run_command "apt update -y" "$sudo_available"
 
 echo "[Install the ros-desktop-full and all rqt plugins]"
-sudo apt install -y ros-$name_ros_version-desktop-full ros-$name_ros_version-rqt-*
+run_command "apt install -y ros-$name_ros_version-desktop-full ros-$name_ros_version-rqt-*" "$sudo_available"
 
 echo "[Environment setup and getting rosinstall]"
 source /opt/ros/$name_ros_version/setup.sh
-sudo apt install -y python-rosinstall python-rosinstall-generator python-wstool build-essential git
+run_command "apt install -y python-rosinstall python-rosinstall-generator python-wstool build-essential git" "$sudo_available"
 
 echo "[Install rosdep]"
-sudo apt install python-rosdep
+run_command "apt install python-rosdep
 
 echo "[Initialize rosdep and Update]"
-sudo sh -c "rosdep init"
+run_command "sh -c \"rosdep init\"
 rosdep update
 
 echo "[Make the catkin workspace and test the catkin_make]"
@@ -111,7 +111,7 @@ sh -c "echo \"export ROS_HOSTNAME=localhost\" >> ~/.bashrc"
 
 source $HOME/.bashrc
 
-sudo apt install ros-melodic-joy ros-melodic-teleop-twist-joy \
+run_command "sudo apt install -y ros-melodic-joy ros-melodic-teleop-twist-joy \
   ros-melodic-teleop-twist-keyboard ros-melodic-laser-proc \
   ros-melodic-rgbd-launch ros-melodic-depthimage-to-laserscan \
   ros-melodic-rosserial-arduino ros-melodic-rosserial-python \
@@ -119,7 +119,7 @@ sudo apt install ros-melodic-joy ros-melodic-teleop-twist-joy \
   ros-melodic-rosserial-msgs ros-melodic-amcl ros-melodic-map-server \
   ros-melodic-move-base ros-melodic-urdf ros-melodic-xacro \
   ros-melodic-compressed-image-transport ros-melodic-rqt* \
-  ros-melodic-gmapping ros-melodic-navigation ros-melodic-interactive-markers
+  ros-melodic-gmapping ros-melodic-navigation ros-melodic-interactive-markers" "$sudo_available"
 
 echo "[Complete!!!]"
 exit 0
