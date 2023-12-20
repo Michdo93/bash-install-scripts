@@ -29,11 +29,11 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
-sudo apt update
-sudo apt install mosquitto -y
-sudo apt install mosquitto-clients -y
-sudo apt clean
+run_command "apt-add-repository ppa:mosquitto-dev/mosquitto-ppa" "$sudo_available"
+run_command "apt update" "$sudo_available"
+run_command "apt install mosquitto -y" "$sudo_available"
+run_command "apt install mosquitto-clients -y" "$sudo_available"
+run_command "apt clean" "$sudo_available"
 
-sudo systemctl start mosquitto.service
-sudo systemctl enable mosquitto.service
+run_command "systemctl start mosquitto.service" "$sudo_available"
+run_command "systemctl enable mosquitto.service" "$sudo_available"
