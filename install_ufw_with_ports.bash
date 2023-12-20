@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt-get install -y nmap ufw
+run_command "apt install -y nmap ufw" "$sudo_available"
 
 # Scannen der offenen Ports mit nmap
 echo "Scanne offene Ports mit nmap..."
@@ -38,30 +38,30 @@ open_ports=$(nmap -p- --open --min-rate=1000 -T4 127.0.0.1 | grep ^[0-9] | cut -
 # Ausgabe der gefundenen offenen Ports
 echo "Gefundene offene Ports: $open_ports"
 
-sudo ufw enable
+run_command "ufw enable" "$sudo_available"
 
-sudo ufw allow 80       # Beispiel für Port 80 (HTTP)
-sudo ufw allow 22      # Beispiel für SSH
+run_command "ufw allow 80" "$sudo_available"
+run_command "ufw allow 22" "$sudo_available"
 
 IFS=',' read -ra ports_array <<< "$open_ports"
 for port in "${ports_array[@]}"; do
-    sudo ufw allow $port
+    run_command "ufw allow $port
 done
 
 # Anzeige der aktuellen ufw-Konfiguration
 echo "Aktuelle ufw-Konfiguration:"
-sudo ufw status verbose > ufw_configuration.txt
+run_command "ufw status verbose > ufw_configuration.txt" "$sudo_available"
 cat ufw_configuration.txt
 
 # Installiere Webmin
-sudo sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
+run_command "sh -c 'echo \"deb http://download.webmin.com/download/repository sarge contrib\" > /etc/apt/sources.list.d/webmin.list'
 wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -
-sudo apt update
-sudo apt install webmin -y
+run_command "apt update" "$sudo_available"
+run_command "apt install webmin -y" "$sudo_available"
 
-sudo systemctl start webmin
-sudo systemctl enable webmin
+run_command "systemctl start webmin" "$sudo_available"
+run_command "systemctl enable webmin" "$sudo_available"
 
-sudo apt install webmin-ufw -y
+run_command "apt install webmin-ufw -y" "$sudo_available"
 
-sudo ufw allow 10000
+run_command "ufw allow 10000" "$sudo_available"
