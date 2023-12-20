@@ -29,21 +29,21 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install ufw -y
+run_command "apt install ufw -y" "$sudo_available"
 
-sudo ufw enable
-sudo ufw allow 80       # Beispiel für Port 80 (HTTP)
-sudo ufw allow 22      # Beispiel für SSH
+run_command "ufw enable" "$sudo_available"
+run_command "ufw allow 80" "$sudo_available"
+run_command "ufw allow 22" "$sudo_available"
 
 # Installiere Webmin
-sudo sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
+run_command "sh -c 'echo \"deb http://download.webmin.com/download/repository sarge contrib\" > /etc/apt/sources.list.d/webmin.list'" "$sudo_available"
 wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -
-sudo apt update
-sudo apt install webmin -y
+run_command "apt update" "$sudo_available"
+run_command "apt install webmin -y" "$sudo_available"
 
-sudo systemctl start webmin
-sudo systemctl enable webmin
+run_command "systemctl start webmin" "$sudo_available"
+run_command "systemctl enable webmin" "$sudo_available"
 
-sudo apt install webmin-ufw -y
+run_command "apt install webmin-ufw -y" "$sudo_available"
 
-sudo ufw allow 10000
+run_command "ufw allow 10000" "$sudo_available"
