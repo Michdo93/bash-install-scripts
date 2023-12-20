@@ -32,7 +32,7 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 ./install_nodejs.bash
 
 cd /var/www/html/
-sudo git clone https://github.com/afaqurk/linux-dash.git
+run_command "git clone https://github.com/afaqurk/linux-dash.git" "$sudo_available"
 
 cd linux-dash/app/server
 
