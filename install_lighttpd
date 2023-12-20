@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install lighttpd -y
+run_command "apt install lighttpd -y" "$sudo_available"
 
-sudo systemctl start lighttpd
-sudo systemctl enable lighttpd
+run_command "systemctl start lighttpd" "$sudo_available"
+run_command "systemctl enable lighttpd" "$sudo_available"
