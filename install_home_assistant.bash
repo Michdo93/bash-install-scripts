@@ -32,12 +32,12 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 ./install_python.bash
 
 # As root
-sudo su
+run_command "su" "$sudo_available"
 apt update
 apt install -y build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev
 
 # Switch to Home Assistant User
-sudo su - homeassistant
+run_command "su - homeassistant" "$sudo_available"
 cd /home/homeassistant/
 python3 -m venv homeassistant_venv
 source /home/homeassistant/homeassistant_venv/bin/activate
@@ -51,7 +51,7 @@ pip install homeassistant
 exit
 
 # edit systemd service unit for new virtualenv
-cat <<EOL | sudo tee /etc/systemd/system/home-assistant.service
+cat <<EOL | run_command "tee /etc/systemd/system/home-assistant.service" "$sudo_available"
 [Unit]
 Description=Home Assistant
 After=network.target
@@ -65,5 +65,5 @@ ExecStart=/home/homeassistant/homeassistant_venv/bin/hass -c "/home/homeassistan
 WantedBy=multi-user.target
 EOL
 
-sudo systemctl start home-assistant.service
-sudo systemctl enable home-assistant.service
+run_command "systemctl start home-assistant.service" "$sudo_available"
+run_command "systemctl enable home-assistant.service" "$sudo_available"
