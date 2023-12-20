@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install automake libtool make gcc pkg-config flex bison libssl-dev -y
+run_command "apt install automake libtool make gcc pkg-config flex bison libssl-dev -y" "$sudo_available"
 
 cd /opt
 wget https://github.com/VirusTotal/yara/archive/refs/tags/v4.4.0.tar.gz
@@ -39,6 +39,6 @@ cd yara-4.4.0
 ./bootstrap.sh
 ./configure
 make
-sudo make install
+run_command "make install" "$sudo_available"
 
-sudo ln -s /usr/local/lib/libyara.so /usr/lib/libyara.so
+run_command "ln -s /usr/local/lib/libyara.so /usr/lib/libyara.so" "$sudo_available"
