@@ -29,4 +29,4 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-curl -s https://packagecloud.io/install/repositories/qxip/sipcapture/script.deb.sh | sudo bash
+curl -s https://packagecloud.io/install/repositories/qxip/sipcapture/script.deb.sh | run_command "bash" "$sudo_available"
