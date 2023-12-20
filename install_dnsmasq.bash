@@ -29,7 +29,7 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install dnsmasq -y
+run_command "apt install dnsmasq -y" "$sudo_available"
 
-sudo systemctl start dnsmasq
-sudo systemctl enable dnsmasq
+run_command "systemctl start dnsmasq" "$sudo_available"
+run_command "systemctl enable dnsmasq" "$sudo_available"
