@@ -29,9 +29,9 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-sudo apt install mysql-server -y
+run_command "apt install mysql-server -y" "$sudo_available"
 
-sudo mysql_secure_installation
+run_command "mysql_secure_installation" "$sudo_available"
 
-sudo systemctl start mysql.service
-sudo systemctl enable mysql.service
+run_command "systemctl start mysql.service" "$sudo_available"
+run_command "systemctl enable mysql.service" "$sudo_available"
