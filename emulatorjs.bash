@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Funktion, um zu prüfen, ob Docker installiert ist
+is_docker_installed() {
+    if command -v docker &> /dev/null; then
+        return 0  # Docker ist installiert
+    else
+        return 1  # Docker ist nicht installiert
+    fi
+}
+
 # Funktion, um zu prüfen, ob sudo verfügbar ist
 check_sudo() {
     if command -v sudo &> /dev/null; then
@@ -21,45 +30,51 @@ run_command() {
     fi
 }
 
-# Aktualisieren und Upgraden
-sudo_available=$(check_sudo)
-run_command "apt update" "$sudo_available"
-run_command "apt upgrade -y" "$sudo_available"
+# Überprüfen, ob Docker bereits installiert ist
+if is_docker_installed; then
+    echo "Docker ist bereits installiert."
+else
+    # Aktualisieren und Upgraden
+    sudo_available=$(check_sudo)
+    run_command "apt update" "$sudo_available"
+    run_command "apt upgrade -y" "$sudo_available"
 
-# Installieren von Paketen
-run_command "apt install curl git wget net-tools -y" "$sudo_available"
+    # Installieren von Paketen
+    run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-# Docker
-# Add Docker's official GPG key:
-sudo apt update
-sudo apt install ca-certificates curl gnupg -y
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    # Add Docker's official GPG key:
+    run_command "apt update" "$sudo_available"
+    run_command "apt install ca-certificates curl gnupg -y" "$sudo_available"
+    run_command "install -m 0755 -d /etc/apt/keyrings" "$sudo_available"
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    run_command "chmod a+r /etc/apt/keyrings/docker.gpg" "$sudo_available"
 
-# Add the repository to Apt sources:
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
+    # Add the repository to Apt sources:
+    echo \
+      "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+      run_command "tee /etc/apt/sources.list.d/docker.list > /dev/null" "$sudo_available"
+    run_command "apt update" "$sudo_available"
 
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+    run_command "apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y" "$sudo_available"
+fi
 
-sudo groupadd docker
-sudo usermod -aG docker $USER
+run_command "groupadd docker" "$sudo_available"
+run_command "usermod -aG docker $USER" "$sudo_available"
 
-sudo systemctl start docker.service
-sudo systemctl enable docker.service
-sudo systemctl start containerd.service
-sudo systemctl enable containerd.service
+# Fehlende Teile des Skripts
+run_command "systemctl start docker.service" "$sudo_available"
+run_command "systemctl enable docker.service" "$sudo_available"
+run_command "systemctl start containerd.service" "$sudo_available"
+run_command "systemctl enable containerd.service" "$sudo_available"
 
 # Warten, bis Docker-Dienste vollständig initialisiert sind
 while ! docker info &>/dev/null; do
     sleep 1
 done
 
-docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:lates
+# Docker-Befehl für Portainer ausführen
+run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
 
 # EmulatorJS
 #docker pull lscr.io/linuxserver/emulatorjs:latest 
