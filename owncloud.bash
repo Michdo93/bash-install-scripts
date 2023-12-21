@@ -33,7 +33,7 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 host_name=$(hostname)
 
 # Abhängigkeiten installieren
-run_command "apt install -y apache2 mariadb-server libapache2-mod-php php7.4-gd php7.4-json php7.4-mysql php7.4-curl php7.4-mbstring php7.4-intl php7.4-mcrypt php-imagick php7.4-xml php7.4-zip unzip -y" "$sudo_available"
+run_command "apt install -y apache2 libapache2-mod-php php7.4-gd php7.4-json php7.4-mysql php7.4-curl php7.4-mbstring php7.4-intl php7.4-mcrypt php-imagick php7.4-xml php7.4-zip unzip -y" "$sudo_available"
 
 # Überprüfen, ob MariaDB bereits installiert ist
 if ! command -v mariadb &> /dev/null; then
