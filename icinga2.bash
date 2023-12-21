@@ -41,6 +41,17 @@ run_command() {
     fi
 }
 
+# Aktualisieren und Upgraden
+sudo_available=$(check_sudo)
+run_command "apt update" "$sudo_available"
+run_command "apt upgrade -y" "$sudo_available"
+
+# Installieren von weiteren Paketen
+run_command "apt install curl git wget net-tools apache2 php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
+
+run_command "systemctl start apache2" "$sudo_available"
+run_command "systemctl enable apache2" "$sudo_available"
+
 # Überprüfen, ob MariaDB bereits installiert ist
 if ! command -v mariadb &> /dev/null; then
     # Installieren von Paketen
@@ -52,17 +63,6 @@ if ! command -v mariadb &> /dev/null; then
     run_command "systemctl start mariadb.service" "$sudo_available"
     run_command "systemctl enable mariadb.service" "$sudo_available"
 fi
-
-# Aktualisieren und Upgraden
-sudo_available=$(check_sudo)
-run_command "apt update" "$sudo_available"
-run_command "apt upgrade -y" "$sudo_available"
-
-# Installieren von weiteren Paketen
-run_command "apt install curl git wget net-tools apache2 php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
-
-run_command "systemctl start apache2" "$sudo_available"
-run_command "systemctl enable apache2" "$sudo_available"
 
 # Überprüfe die Ubuntu-Version und wende die Änderungen an
 if [[ $ubuntu_version == "22.04" ]]; then
