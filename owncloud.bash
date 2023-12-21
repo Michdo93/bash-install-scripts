@@ -81,7 +81,7 @@ run_command "a2enmod rewrite" "$sudo_available"
 run_command "systemctl restart apache2" "$sudo_available"
 
 # OwnCloud abschließen
-run_command "sudo -u www-data php /var/www/html/owncloud/occ maintenance:install --database \"mysql\" --database-name \"owncloud\" --database-user \"mariadb_root\" --database-pass \"mariadb_root\" --admin-user \"owncloud\" --admin-pass \"owncloud_password\"" "$sudo_available"
+run_command "sudo -u www-data php /var/www/html/owncloud/occ maintenance:install --database \"mysql\" --database-name \"owncloud\" --database-user \"owncloud\" --database-pass \"owncloud\" --admin-user \"mariadb_root\" --admin-pass \"mariadb_root\"" "$sudo_available"
 
 # Systemd-Dienst für OwnCloud erstellen
 cat <<EOL | run_command "tee /etc/systemd/system/owncloud.service" "$sudo_available"
