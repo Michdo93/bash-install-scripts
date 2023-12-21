@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Funktion, um zu prüfen, ob Docker installiert ist
+is_docker_installed() {
+    if command -v docker &> /dev/null; then
+        return 0  # Docker ist installiert
+    else
+        return 1  # Docker ist nicht installiert
+    fi
+}
+
 # Funktion, um zu prüfen, ob sudo verfügbar ist
 check_sudo() {
     if command -v sudo &> /dev/null; then
@@ -20,6 +29,12 @@ run_command() {
         "$cmd"
     fi
 }
+
+# Überprüfen, ob Docker bereits installiert ist
+if is_docker_installed; then
+    echo "Docker ist bereits installiert."
+    exit 0
+fi
 
 # Aktualisieren und Upgraden
 sudo_available=$(check_sudo)
