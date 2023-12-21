@@ -2,6 +2,17 @@
 
 # Benutzer auffordern, das neue MySQL-Passwort einzugeben
 read -sp "Geben Sie das neue MySQL-Passwort für den Benutzer 'root' ein: " new_password
+echo
+
+# Benutzer auffordern, das neue MySQL-Passwort zu bestätigen
+read -sp "Bestätigen Sie das neue MySQL-Passwort: " confirm_password
+echo
+
+# Überprüfen, ob die eingegebenen Passwörter übereinstimmen
+if [ "$new_password" != "$confirm_password" ]; then
+    echo "Fehler: Die eingegebenen Passwörter stimmen nicht überein."
+    exit 1
+fi
 
 # Funktion, um zu prüfen, ob sudo verfügbar ist
 check_sudo() {
