@@ -68,5 +68,10 @@ run_command "systemctl enable docker.service" "$sudo_available"
 run_command "systemctl start containerd.service" "$sudo_available"
 run_command "systemctl enable containerd.service" "$sudo_available"
 
+# Warten, bis Docker-Dienste vollständig initialisiert sind
+while ! docker info &>/dev/null; do
+    sleep 1
+done
+
 # Docker-Befehl für Portainer ausführen
 run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
