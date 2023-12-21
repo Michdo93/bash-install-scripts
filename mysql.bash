@@ -31,7 +31,6 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 run_command "apt install mysql-server -y" "$sudo_available"
 
-run_command "mysql_secure_installation" "$sudo_available"
-
+echo -e "mysql_root\nmysql_root\nY\nn\nY\nY\nY\n" | run_command "mysql_secure_installation" "$sudo_available"
 run_command "systemctl start mysql.service" "$sudo_available"
 run_command "systemctl enable mysql.service" "$sudo_available"
