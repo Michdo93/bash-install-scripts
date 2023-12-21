@@ -27,15 +27,19 @@ run_command "apt update" "$sudo_available"
 run_command "apt upgrade -y" "$sudo_available"
 
 # Installieren von Paketen
-run_command "apt install curl git wget net-tools -y" "$sudo_available"
+run_command "apt install curl git wget net-tools apt-transport-https -y" "$sudo_available"
 
-# Jellyfin: Port 8096
-run_command "apt install apt-transport-https" "$sudo_available"
-run_command "wget -O /usr/share/keyrings/jellyfin-archive-keyring.gpg https://repo.jellyfin.org/ubuntu/jellyfin-archive-keyring.gpg" "$sudo_available"
-echo "deb [signed-by=/usr/share/keyrings/jellyfin-archive-keyring.gpg] https://repo.jellyfin.org/ubuntu $(lsb_release -cs) main" | run_command "tee /etc/apt/sources.list.d/jellyfin.list" "$sudo_available"
+# Jellyfin installieren
+JELLYFIN_KEYRING="/usr/share/keyrings/jellyfin-archive-keyring.gpg"
+JELLYFIN_REPO="https://repo.jellyfin.org/ubuntu"
+JELLYFIN_LIST="/etc/apt/sources.list.d/jellyfin.list"
+
+run_command "wget -O $JELLYFIN_KEYRING $JELLYFIN_REPO/jellyfin-archive-keyring.gpg" "$sudo_available"
+echo "deb [signed-by=$JELLYFIN_KEYRING] $JELLYFIN_REPO $(lsb_release -cs) main" | run_command "tee $JELLYFIN_LIST" "$sudo_available"
 
 run_command "apt update" "$sudo_available"
 run_command "apt install jellyfin -y" "$sudo_available"
 
+# Jellyfin-Dienst starten und aktivieren
 run_command "systemctl start jellyfin.service" "$sudo_available"
 run_command "systemctl enable jellyfin.service" "$sudo_available"
