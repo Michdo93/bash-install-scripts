@@ -45,7 +45,7 @@ run_command "ufw allow 22" "$sudo_available"
 
 IFS=',' read -ra ports_array <<< "$open_ports"
 for port in "${ports_array[@]}"; do
-    run_command "ufw allow $port
+    run_command "ufw allow $port" "$sudo_available"  # Hier war das schließende Anführungszeichen vergessen
 done
 
 # Anzeige der aktuellen ufw-Konfiguration
@@ -54,7 +54,7 @@ run_command "ufw status verbose > ufw_configuration.txt" "$sudo_available"
 cat ufw_configuration.txt
 
 # Installiere Webmin
-run_command "sh -c 'echo \"deb http://download.webmin.com/download/repository sarge contrib\" > /etc/apt/sources.list.d/webmin.list'
+run_command "sh -c 'echo \"deb http://download.webmin.com/download/repository sarge contrib\" > /etc/apt/sources.list.d/webmin.list'"
 wget -qO - http://www.webmin.com/jcameron-key.asc | sudo apt-key add -
 run_command "apt update" "$sudo_available"
 run_command "apt install webmin -y" "$sudo_available"
