@@ -31,11 +31,17 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 run_command "apt install -y build-essential cmake git libboost-dev libboost-thread-dev libboost-system-dev libsqlite3-dev libssl-dev libcurl4-openssl-dev libusb-dev zlib1g-dev libudev-dev libreadline-dev libmosquitto-dev libmysqlclient-dev libjsoncpp-dev libwxgtk3.0-gtk3-dev" "$sudo_available"
 
-git clone --recursive https://github.com/domoticz/domoticz.git
-cd domoticz
-cmake -DCMAKE_BUILD_TYPE=Release .
-make -j$(nproc)
+# Domoticz unter dem Benutzer installieren
+run_command "git clone --recursive https://github.com/domoticz/domoticz.git" "$sudo_available"
+run_command "cd domoticz" "$sudo_available"
+run_command "cmake -DCMAKE_BUILD_TYPE=Release ." "$sudo_available"
+run_command "make -j$(nproc)" "$sudo_available"
 
+# Ordner erstellen, wenn er nicht existiert
+run_command "mkdir -p /opt/domoticz" "$sudo_available"
+run_command "chown -R $USER:$USER /opt/domoticz" "$sudo_available"
+
+# Domoticz installieren
 run_command "make install" "$sudo_available"
 
 # systemd-Service-Datei erstellen
@@ -47,8 +53,8 @@ After=network.target
 [Service]
 ExecStart=/opt/domoticz/domoticz -www 8080
 Restart=on-failure
-User=root
-Group=root
+User=$USER
+Group=$USER
 WorkingDirectory=/opt/domoticz
 
 [Install]
