@@ -31,7 +31,7 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 run_command "apt install -y software-properties-common" "$sudo_available"
 run_command "add-apt-repository \"deb https://packages.grafana.com/oss/deb stable main\"" "$sudo_available"
-wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+wget -q -O - https://packages.grafana.com/gpg.key | run_command "sudo apt-key add -" "$sudo_available"
 run_command "apt update" "$sudo_available"
 run_command "apt install -y grafana" "$sudo_available"
 
