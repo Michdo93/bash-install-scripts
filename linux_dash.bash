@@ -29,12 +29,39 @@ run_command "apt upgrade -y" "$sudo_available"
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-./install_nodejs.bash
+# Überprüfen, ob Node.js bereits installiert ist
+if ! command -v node &> /dev/null; then
+    # Node.js nicht gefunden, daher NVM installieren
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+    source ~/.bashrc
+    nvm install --lts
+    run_command "npm install pm2 -g" "$sudo_available"
+fi
 
+# Git-Repository klonen
 cd /var/www/html/
 run_command "git clone https://github.com/afaqurk/linux-dash.git" "$sudo_available"
 
-cd linux-dash/app/server
+# Anwendungspfad setzen
+app_path="/var/www/html/linux-dash/app/server"
 
-npm install --production
-node index.js
+# Service-Datei erstellen
+cat <<EOL | run_command "tee /etc/systemd/system/linux-dash.service" "$sudo_available"
+[Unit]
+Description=Linux Dash Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node $app_path/index.js
+WorkingDirectory=$app_path
+Restart=always
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Service starten und aktivieren
+run_command "systemctl start linux-dash.service" "$sudo_available"
+run_command "systemctl enable linux-dash.service" "$sudo_available"
