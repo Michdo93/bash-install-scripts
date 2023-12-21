@@ -41,25 +41,28 @@ run_command() {
     fi
 }
 
+# Überprüfen, ob MariaDB bereits installiert ist
+if ! command -v mariadb &> /dev/null; then
+    # Installieren von Paketen
+    run_command "apt install mariadb-server mariadb-client mariadb-common -y" "$sudo_available"
+
+    # Durchführen der MariaDB-Sicherheitsinstallation
+    echo -e "mariadb_root\nmariadb_root\nY\nn\nY\nY\nY\n" | run_command "mysql_secure_installation" "$sudo_available"
+
+    run_command "systemctl start mariadb.service" "$sudo_available"
+    run_command "systemctl enable mariadb.service" "$sudo_available"
+fi
+
 # Aktualisieren und Upgraden
 sudo_available=$(check_sudo)
 run_command "apt update" "$sudo_available"
 run_command "apt upgrade -y" "$sudo_available"
 
-# Installieren von Paketen
-run_command "apt install curl git wget net-tools -y" "$sudo_available"
+# Installieren von weiteren Paketen
+run_command "apt install curl git wget net-tools apache2 php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
 
-run_command "apt install apache2 mariadb-server mariadb-client mariadb-common php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
-
-run_command "systemctl start apache2 mariadb" "$sudo_available"
-run_command "systemctl enable apache2 mariadb" "$sudo_available"
-
-run_command "apt install mariadb-server -y" "$sudo_available"
-
-echo -e "mariadb_root\nmariadb_root\nY\nn\nY\nY\nY\n" | run_command "mysql_secure_installation" "$sudo_available"
-
-run_command "systemctl start mariadb.service" "$sudo_available"
-run_command "systemctl enable mariadb.service" "$sudo_available"
+run_command "systemctl start apache2" "$sudo_available"
+run_command "systemctl enable apache2" "$sudo_available"
 
 # Überprüfe die Ubuntu-Version und wende die Änderungen an
 if [[ $ubuntu_version == "22.04" ]]; then
@@ -114,40 +117,4 @@ EXIT;
 # Ausführung der MySQL-Befehle
 echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
 
-run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schema/mysql.sql" "$sudo_available"
-
-# Anpassungen in der ido-mysql.conf-Datei
-ido_mysql_conf="/etc/icinga2/features-available/ido-mysql.conf"
-run_command "sed -i \"s/^library.*$/library \\"db_ido_mysql\\"/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^object.*IDOConnection.*$/object IdoMysqlConnection \\"ido-mysql\\" \{/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*password.*=.*$/  password = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*host.*=.*$/  host = \\"localhost\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" "$ido_mysql_conf" "$sudo_available"
-run_command "sed -i \"s/^.*}/\}/\" \"$ido_mysql_conf\"" "$sudo_available"
-
-run_command "icinga2 feature enable ido-mysql" "$sudo_available"
-
-run_command "systemctl restart icinga2" "$sudo_available"
-
-run_command "apt install icingaweb2 icingacli -y" "$sudo_available"
-
-
-# MySQL-Befehle
-mysql_commands="
-CREATE DATABASE icingaweb2;
-GRANT ALL ON icingaweb2.* TO 'icingaweb2user'@'localhost' IDENTIFIED BY 'icingaweb2user';
-FLUSH PRIVILEGES;
-EXIT;
-"
-
-# Ausführung der MySQL-Befehle
-echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
-
-# Erstelle das Token
-icingacli_output=$(run_command "icingacli setup token create" "$sudo_available")
-
-# Extrahiere das Token
-icingacli_token=$(echo "$icingacli_output" | grep -oP 'The newly generated setup token is: \K.*')
-
-run_command "apt upgrade -y" "$sudo_available"
+run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql
