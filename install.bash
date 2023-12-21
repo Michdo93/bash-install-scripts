@@ -19,7 +19,7 @@ for skript in "${skriptArray[@]}"; do
     markierung=" "
 
     # Überprüfung, ob das Skript ausgeschlossen werden soll
-    if [[ "$skript" =~ .*_uninstall\.bash$ ]] || [[ "$skript" =~ .*change-root-pwd\.bash$ ]] || [[ "$skript" =~ .*create-new-user\.bash$ ]] || [ "$(basename "$skript")" == "install.bash" ] || [ "$(basename "$skript")" == "README.md" ]; then
+    if [[ "$skript" =~ .*_uninstall\.bash$ ]] || [[ "$skript" =~ .*-pwd\.bash$ ]] || [[ "$skript" =~ .*change-root-pwd\.bash$ ]] || [[ "$skript" =~ .*create-new-user\.bash$ ]] || [ "$(basename "$skript")" == "install.bash" ] || [ "$(basename "$skript")" == "README.md" ]; then
         continue
     fi
     
