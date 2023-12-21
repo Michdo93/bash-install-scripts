@@ -38,3 +38,11 @@ run_command "apt install influxdb2 -y" "$sudo_available"
 
 run_command "systemctl start influxdb.service" "$sudo_available"
 run_command "systemctl enable influxdb.service" "$sudo_available"
+
+# Setze die InfluxDB-Zugangsdaten
+INFLUXDB_HOST="localhost"
+INFLUXDB_PORT="8086"
+INFLUXDB_USERNAME="admin"
+INFLUXDB_PASSWORD="influxdb"
+
+influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -token "$INFLUXDB_USERNAME:$INFLUXDB_PASSWORD" -organization "influxdb" -execute "CREATE USER $INFLUXDB_USERNAME WITH PASSWORD '$INFLUXDB_PASSWORD' WITH ALL PRIVILEGES"
