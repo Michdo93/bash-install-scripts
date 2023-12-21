@@ -37,7 +37,7 @@ JAVA_HOME="/usr/lib/jvm/jdk-17"
 echo "JAVA_HOME=\"$JAVA_HOME\"" | run_command "tee -a /etc/environment" "$sudo_available"
 
 # Bearbeite die PATH-Zeile in /etc/environment
-run_command "sed -i "/^PATH=/ s/\"$/:$JAVA_HOME\/bin\"/" /etc/environment" "$sudo_available"
+run_command 'sed -i "/^PATH=/ s/:$/:$JAVA_HOME\/bin/" /etc/environment' "$sudo_available"
 
 # Aktualisiere die Umgebungsvariablen
 source /etc/environment
