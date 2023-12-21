@@ -35,7 +35,17 @@ host_name=$(hostname)
 # Abhängigkeiten installieren
 run_command "apt install -y apache2 mariadb-server libapache2-mod-php php7.4-gd php7.4-json php7.4-mysql php7.4-curl php7.4-mbstring php7.4-intl php7.4-mcrypt php-imagick php7.4-xml php7.4-zip unzip -y" "$sudo_available"
 
-./install_mariadb.bash
+# Überprüfen, ob MariaDB bereits installiert ist
+if ! command -v mariadb &> /dev/null; then
+    # Installieren von Paketen
+    run_command "apt install mariadb-server mariadb-client mariadb-common -y" "$sudo_available"
+
+    # Durchführen der MariaDB-Sicherheitsinstallation
+    echo -e "mariadb_root\nmariadb_root\nY\nn\nY\nY\nY\n" | run_command "mysql_secure_installation" "$sudo_available"
+
+    run_command "systemctl start mariadb.service" "$sudo_available"
+    run_command "systemctl enable mariadb.service" "$sudo_available"
+fi
 
 # OwnCloud herunterladen und extrahieren
 wget https://download.owncloud.org/community/owncloud-complete-20210510.zip
@@ -71,7 +81,7 @@ run_command "a2enmod rewrite" "$sudo_available"
 run_command "systemctl restart apache2" "$sudo_available"
 
 # OwnCloud abschließen
-run_command "-u www-data php /var/www/html/owncloud/occ maintenance:install --database \"mysql\" --database-name \"owncloud\"  --database-user \"root\" --database-pass \"password\" --admin-user \"admin\" --admin-pass \"adminpassword\"" "$sudo_available"
+run_command "sudo -u www-data php /var/www/html/owncloud/occ maintenance:install --database \"mysql\" --database-name \"owncloud\" --database-user \"mariadb_root\" --database-pass \"mariadb_root\" --admin-user \"owncloud\" --admin-pass \"owncloud_password\"" "$sudo_available"
 
 # Systemd-Dienst für OwnCloud erstellen
 cat <<EOL | run_command "tee /etc/systemd/system/owncloud.service" "$sudo_available"
@@ -80,7 +90,7 @@ Description=OwnCloud
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/php -S 0.0.0.0:8080 -t /var/www/html/owncloud
+ExecStart=/usr/bin/php7.4 -S 0.0.0.0:8080 -t /var/www/html/owncloud
 Restart=on-failure
 User=www-data
 Group=www-data
