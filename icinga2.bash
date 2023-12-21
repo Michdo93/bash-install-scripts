@@ -54,7 +54,12 @@ run_command "apt install apache2 mariadb-server mariadb-client mariadb-common ph
 run_command "systemctl start apache2 mariadb" "$sudo_available"
 run_command "systemctl enable apache2 mariadb" "$sudo_available"
 
-run_command "mysql_secure_installation" "$sudo_available"
+run_command "apt install mariadb-server -y" "$sudo_available"
+
+echo -e "mariadb_root\nmariadb_root\nY\nn\nY\nY\nY\n" | run_command "mysql_secure_installation" "$sudo_available"
+
+run_command "systemctl start mariadb.service" "$sudo_available"
+run_command "systemctl enable mariadb.service" "$sudo_available"
 
 # Überprüfe die Ubuntu-Version und wende die Änderungen an
 if [[ $ubuntu_version == "22.04" ]]; then
@@ -96,7 +101,7 @@ export DEBIAN_FRONTEND=dialog
 
 # MySQL-Anmeldedaten
 mysql_user="root"
-mysql_password="mysql_root"
+mysql_password="mariadb_root"
 
 # MySQL-Befehle
 mysql_commands="
@@ -115,8 +120,8 @@ run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schem
 ido_mysql_conf="/etc/icinga2/features-available/ido-mysql.conf"
 run_command "sed -i \"s/^library.*$/library \\"db_ido_mysql\\"/\" \"$ido_mysql_conf\"" "$sudo_available"
 run_command "sed -i \"s/^object.*IDOConnection.*$/object IdoMysqlConnection \\"ido-mysql\\" \{/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido_user\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*password.*=.*$/  password = \\"Password321\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*password.*=.*$/  password = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
 run_command "sed -i \"s/^.*host.*=.*$/  host = \\"localhost\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
 run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" "$ido_mysql_conf" "$sudo_available"
 run_command "sed -i \"s/^.*}/\}/\" \"$ido_mysql_conf\"" "$sudo_available"
