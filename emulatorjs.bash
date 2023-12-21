@@ -1,21 +1,22 @@
 #!/bin/bash
 
+# Überprüfen, ob der Benutzer Root ist
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Bitte als Root ausführen (mit sudo)." >&2
+    exit 1
+fi
+
+# Fehlerbehandlung aktivieren
+set -e
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
-    if command -v docker &> /dev/null; then
-        return 0  # Docker ist installiert
-    else
-        return 1  # Docker ist nicht installiert
-    fi
+    command -v docker &> /dev/null
 }
 
 # Funktion, um zu prüfen, ob sudo verfügbar ist
 check_sudo() {
-    if command -v sudo &> /dev/null; then
-        echo "sudo"
-    else
-        echo ""
-    fi
+    command -v sudo &> /dev/null && echo "sudo" || true
 }
 
 # Funktion zum Ausführen von Befehlen mit oder ohne sudo
@@ -43,7 +44,6 @@ else
     run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
     # Add Docker's official GPG key:
-    run_command "apt update" "$sudo_available"
     run_command "apt install ca-certificates curl gnupg -y" "$sudo_available"
     run_command "install -m 0755 -d /etc/apt/keyrings" "$sudo_available"
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -62,31 +62,34 @@ fi
 run_command "groupadd docker" "$sudo_available"
 run_command "usermod -aG docker $USER" "$sudo_available"
 
-# Fehlende Teile des Skripts
-run_command "systemctl start docker.service" "$sudo_available"
-run_command "systemctl enable docker.service" "$sudo_available"
-run_command "systemctl start containerd.service" "$sudo_available"
-run_command "systemctl enable containerd.service" "$sudo_available"
-
-# Warten, bis Docker-Dienste vollständig initialisiert sind
-while ! docker info &>/dev/null; do
+# Überprüfen, ob Docker-Dienste gestartet sind
+while ! systemctl is-active --quiet docker.service && ! systemctl is-active --quiet containerd.service; do
     sleep 1
 done
 
-# Docker-Befehl für Portainer ausführen
-run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+# Überprüfen, ob Docker Compose installiert ist
+if ! command -v docker-compose &> /dev/null; then
+    echo "Docker Compose ist nicht installiert. Bitte installieren Sie es zuerst." >&2
+    exit 1
+fi
+
+# Docker-Container für Portainer und EmulatorJS starten
+if docker ps -a | grep -q "portainer" || docker ps -a | grep -q "emulatorjs"; then
+    echo "Portainer oder EmulatorJS Container sind bereits vorhanden. Skript wird beendet." >&2
+    exit 1
+fi
 
 # EmulatorJS
 #docker pull lscr.io/linuxserver/emulatorjs:latest 
 
-mkdir -p /home/ubuntu/emulatorjs
-sudo chown -R ubuntu:ubuntu /home/ubuntu/emulatorjs
+mkdir -p /home/$USER/emulatorjs
+run_command "chown -R $USER:$USER /home/$USER/emulatorjs" "$sudo_available"
 
-sudo mkdir -p /opt/emulatorjs
-sudo chown -R ubuntu:ubuntu /opt/emulatorjs
+run_command "mkdir -p /opt/emulatorjs" "$sudo_available"
+run_command "chown -R $USER:$USER /opt/emulatorjs" "$sudo_available"
 
 # Dateinamen definieren
-DOCKER_COMPOSE_FILE="/home/ubuntu/emulatorjs/emulatorjs-compose.yml"
+DOCKER_COMPOSE_FILE="/home/$USER/emulatorjs/emulatorjs-compose.yml"
 
 # YAML-Code in die Datei schreiben
 cat <<EOL > "$DOCKER_COMPOSE_FILE"
@@ -101,7 +104,7 @@ services:
       - TZ=Etc/UTC
       - SUBFOLDER=/ #optional
     volumes:
-      - /home/ubuntu/emulatorjs/config:/config
+      - /home/$USER/emulatorjs/config:/config
       - /opt/emulatorjs/data:/data
     ports:
       - 3000:3000
@@ -119,7 +122,7 @@ EOL
 # -v /config 	Path to store user profiles
 # -v /data 	Path to store roms/artwork
 
-sudo cat <<EOL > "/etc/systemd/system/docker-compose.service"
+run_command "cat <<EOL > "/etc/systemd/system/docker-compose.service"
     [Unit]
     Description=Docker Compose Application Service
     Requires=docker.service
@@ -127,42 +130,41 @@ sudo cat <<EOL > "/etc/systemd/system/docker-compose.service"
 
     [Service]
     Type=simple
-    WorkingDirectory=/home/ubuntu/emulatorjs
+    WorkingDirectory=/home/$USER/emulatorjs
     ExecStart=/usr/local/bin/docker-compose up -d
     ExecStop=/usr/local/bin/docker-compose down
     Restart=always
 
     [Install]
     WantedBy=default.target
-EOL
+EOL" "$sudo_available"
 
-sudo systemctl start docker-compose.service
-sudo systemctl enable docker-compose.service
+run_command "systemctl start docker-compose.service" "$sudo_available"
+run_command "systemctl enable docker-compose.service" "$sudo_available"
 
 # NAS
-sudo apt install nfs-kernel-server -y
-sudo systemctl start nfs-kernel-server.service
-sudo systemctl enable nfs-kernel-server.service
+run_command "apt install nfs-kernel-server -y" "$sudo_available"
+run_command "systemctl start nfs-kernel-server.service" "$sudo_available"
+run_command "systemctl enable nfs-kernel-server.service" "$sudo_available"
 
-echo "/opt/emulatorjs *(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+echo "/opt/emulatorjs *(rw,sync,no_subtree_check)" | run_command "tee -a /etc/exports" "$sudo_available"
 
-sudo systemctl restart nfs-kernel-server.service
+run_command "systemctl restart nfs-kernel-server.service" "$sudo_available"
 
-sudo apt install samba samba-common-bin -y
-sudo systemctl start smbd.service
-sudo systemctl enable smbd.service
+run_command "apt install samba samba-common-bin -y" "$sudo_available"
+run_command "systemctl start smbd.service" "$sudo_available"
+run_command "systemctl enable smbd.service" "$sudo_available"
 
 freigabe_verzeichnis="/opt/emulatorjs"
 
 # Samba-Konfigurationsdatei bearbeiten
-echo "[emulatorjs]" | sudo tee -a /etc/samba/smb.conf
-echo "   path = $freigabe_verzeichnis" | sudo tee -a /etc/samba/smb.conf
-echo "   browseable = yes" | sudo tee -a /etc/samba/smb.conf
-echo "   read only = no" | sudo tee -a /etc/samba/smb.conf
-echo "   guest ok = yes" | sudo tee -a /etc/samba/smb.conf
-echo "   create mask = 0775" | sudo tee -a /etc/samba/smb.conf
-echo "   directory mask = 0775" | sudo tee -a /etc/samba/smb.conf
+echo "[emulatorjs]" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   path = $freigabe_verzeichnis" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   browseable = yes" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   read only = no" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   guest ok = yes" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   create mask = 0775" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
+echo "   directory mask = 0775" | run_command "tee -a /etc/samba/smb.conf" "$sudo_available"
 
 # Samba-Dienst neu starten
-sudo systemctl restart smbd.service
-
+run_command "systemctl restart smbd.service" "$sudo_available"
