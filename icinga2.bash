@@ -51,8 +51,8 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 run_command "apt install apache2 mariadb-server mariadb-client mariadb-common php php-gd php-mbstring php-mysqlnd php-curl php-xml php-cli php-soap php-intl php-xmlrpc php-zip php-common php-opcache php-gmp php-imagick php-pgsql -y" "$sudo_available"
 
-run_command "systemctl start {apache2,mariadb}" "$sudo_available"
-run_command "systemctl enable {apache2,mariadb}" "$sudo_available"
+run_command "systemctl start apache2 mariadb" "$sudo_available"
+run_command "systemctl enable apache2 mariadb" "$sudo_available"
 
 run_command "mysql_secure_installation" "$sudo_available"
 
@@ -68,7 +68,7 @@ fi
 run_command "systemctl restart apache2" "$sudo_available"
 run_command "systemctl enable apache2" "$sudo_available"
 
-curl https://packages.icinga.com/icinga.key | apt-key add -
+curl https://packages.icinga.com/icinga.key | run_command "apt-key add -" "$sudo_available"
 
 sources_list="/etc/apt/sources.list.d/icinga-focal.list"
 content="
@@ -77,7 +77,7 @@ deb-src http://packages.icinga.com/ubuntu icinga-focal main
 "
 
 # Erstelle die Datei und füge den Inhalt ein
-echo "$content" | run_command "tee \"$sources_list\" > /dev/null
+echo "$content" | run_command "tee \"$sources_list\" > /dev/null" "$sudo_available"
 
 run_command "apt update" "$sudo_available"
 run_command "apt install icinga2 monitoring-plugins -y" "$sudo_available"
@@ -96,18 +96,18 @@ export DEBIAN_FRONTEND=dialog
 
 # MySQL-Anmeldedaten
 mysql_user="root"
-mysql_password="your_mysql_root_password"
+mysql_password="mysql_root"
 
 # MySQL-Befehle
 mysql_commands="
 CREATE DATABASE icinga_ido_db;
-GRANT ALL ON icinga_ido_db.* TO 'icinga_ido_user'@'localhost' IDENTIFIED BY 'Password321';
+GRANT ALL ON icinga_ido_db.* TO 'icinga_ido'@'localhost' IDENTIFIED BY 'icinga_ido';
 FLUSH PRIVILEGES;
 EXIT;
 "
 
 # Ausführung der MySQL-Befehle
-echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p \"$mysql_password\"" "$sudo_available"
+echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
 
 run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schema/mysql.sql" "$sudo_available"
 
@@ -118,7 +118,7 @@ run_command "sed -i \"s/^object.*IDOConnection.*$/object IdoMysqlConnection \\"i
 run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido_user\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
 run_command "sed -i \"s/^.*password.*=.*$/  password = \\"Password321\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
 run_command "sed -i \"s/^.*host.*=.*$/  host = \\"localhost\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
-run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" "$ido_mysql_conf" "$sudo_available"
 run_command "sed -i \"s/^.*}/\}/\" \"$ido_mysql_conf\"" "$sudo_available"
 
 run_command "icinga2 feature enable ido-mysql" "$sudo_available"
@@ -131,16 +131,16 @@ run_command "apt install icingaweb2 icingacli -y" "$sudo_available"
 # MySQL-Befehle
 mysql_commands="
 CREATE DATABASE icingaweb2;
-GRANT ALL ON icingaweb2.* TO 'icingaweb2user'@'localhost' IDENTIFIED BY 'P@ssword';
+GRANT ALL ON icingaweb2.* TO 'icingaweb2user'@'localhost' IDENTIFIED BY 'icingaweb2user';
 FLUSH PRIVILEGES;
 EXIT;
 "
 
 # Ausführung der MySQL-Befehle
-echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p \"$mysql_password\"" "$sudo_available"
+echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
 
 # Erstelle das Token
-icingacli_output=$(run_command"icingacli setup token create" "$sudo_available")
+icingacli_output=$(run_command "icingacli setup token create" "$sudo_available")
 
 # Extrahiere das Token
 icingacli_token=$(echo "$icingacli_output" | grep -oP 'The newly generated setup token is: \K.*')
