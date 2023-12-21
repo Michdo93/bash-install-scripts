@@ -27,10 +27,9 @@ run_command "apt update" "$sudo_available"
 run_command "apt upgrade -y" "$sudo_available"
 
 # Installieren von Paketen
-run_command "apt install curl git wget net-tools -y" "$sudo_available"
+run_command "apt install curl git wget net-tools apt-transport-https gnupg1 dirmngr lsb-release -y" "$sudo_available"
 
-run_command "apt install apt-transport-https gnupg1 dirmngr lsb-release -y
-
+# Installieren von Speedtest CLI
 curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | run_command "tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg >/dev/null" "$sudo_available"
 
 echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | run_command "tee /etc/apt/sources.list.d/speedtest.list" "$sudo_available"
@@ -38,10 +37,8 @@ echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https
 run_command "apt update" "$sudo_available"
 run_command "apt install speedtest -y" "$sudo_available"
 
-touch /home/pi/speedtest.py
-mkdir /home/pi/speedtest
-
-cat <<EOL > tee /home/pi/speedtest.py"
+# Speedtest Python-Skript erstellen
+cat <<EOL | run_command "tee /home/$USER/speedtest.py" "$sudo_available"
 import re
 import subprocess
 from influxdb import InfluxDBClient
@@ -72,26 +69,25 @@ speed_data = [
         }
     }
 ]
-client = InfluxDBClient('localhost', 8086, 'speedmonitor', 'speed', 'internetspeed')
+client = InfluxDBClient('localhost', 8086, 'admin', 'influxdb', 'internetspeed')
 
 client.write_points(speed_data)
 EOL
 
-# install influxdb
+# Überprüfen, ob influxdb bereits installiert ist
+if ! command -v influx &> /dev/null; then
+    # InfluxDB installieren
+    curl https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | run_command "tee /usr/share/keyrings/influxdb-archive-keyring.gpg >/dev/null" "$sudo_available"
 
-run_command "apt update" "$sudo_available"
-run_command "apt upgrade -y" "$sudo_available"
+    echo "deb [signed-by=/usr/share/keyrings/influxdb-archive-keyring.gpg] https://repos.influxdata.com/debian $(lsb_release -cs) stable" | run_command "tee /etc/apt/sources.list.d/influxdb.list" "$sudo_available"
 
-curl https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | run_command "tee /usr/share/keyrings/influxdb-archive-keyring.gpg >/dev/null" "$sudo_available"
+    run_command "apt update" "$sudo_available"
+    run_command "apt install influxdb2 -y" "$sudo_available"
 
-echo "deb [signed-by=/usr/share/keyrings/influxdb-archive-keyring.gpg] https://repos.influxdata.com/debian $(lsb_release -cs) stable" | run_command "tee /etc/apt/sources.list.d/influxdb.list" "$sudo_available"
-
-run_command "apt update" "$sudo_available"
-run_command "apt install influxdb2 -y" "$sudo_available"
-
-run_command "systemctl unmask influxdb.service" "$sudo_available"
-run_command "systemctl start influxdb.service" "$sudo_available"
-run_command "systemctl enable influxdb.service" "$sudo_available"
+    run_command "systemctl unmask influxdb.service" "$sudo_available"
+    run_command "systemctl start influxdb.service" "$sudo_available"
+    run_command "systemctl enable influxdb.service" "$sudo_available"
+fi
 
 # Setze die InfluxDB-Zugangsdaten
 INFLUXDB_HOST="localhost"
@@ -99,16 +95,17 @@ INFLUXDB_PORT="8086"
 INFLUXDB_USERNAME="admin"
 INFLUXDB_PASSWORD="influxdb"
 
-influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -execute "CREATE USER $INFLUXDB_USERNAME WITH PASSWORD '$INFLUXDB_PASSWORD' WITH ALL PRIVILEGES"
+influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -token "$INFLUXDB_USERNAME:$INFLUXDB_PASSWORD" -organization "influxdb" -execute "CREATE USER $INFLUXDB_USERNAME WITH PASSWORD '$INFLUXDB_PASSWORD' WITH ALL PRIVILEGES"
 
 # Definiere die Befehle
 COMMANDS=("CREATE DATABASE internetspeed" "CREATE USER \"speedmonitor\" WITH PASSWORD 'speed'" "GRANT ALL ON \"internetspeed\" to \"speedmonitor\"" "quit")
 
 # Verbinde dich mit InfluxDB und führe die Befehle aus
 for COMMAND in "${COMMANDS[@]}"; do
-    echo "$COMMAND" | influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -username "$INFLUXDB_USERNAME" -password "$INFLUXDB_PASSWORD"
+    echo "$COMMAND" | influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -token "$INFLUXDB_USERNAME:$INFLUXDB_PASSWORD" -organization "influxdb"
 done
 
-run_command "apt install python3-influxdb -y"" "$sudo_available"
+run_command "apt install python3-pip python3-influxdb -y" "$sudo_available"
 
-echo '*/30 * * * * pi python3 /home/pi/speedtest.py' | run_command "tee -a /etc/crontab" "$sudo_available"
+# Cron-Job hinzufügen
+echo '*/30 * * * * '$USER' python3 /home/'$USER'/speedtest.py' | run_command "tee -a /etc/crontab" "$sudo_available"
