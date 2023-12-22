@@ -32,6 +32,7 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 run_command "apt install -y build-essential cmake git libboost-dev libboost-thread-dev libboost-system-dev libsqlite3-dev libssl-dev libcurl4-openssl-dev libusb-dev zlib1g-dev libudev-dev libreadline-dev libmosquitto-dev libmysqlclient-dev libjsoncpp-dev libwxgtk3.0-gtk3-dev" "$sudo_available"
 
 # Domoticz unter dem Benutzer installieren
+cd $HOME
 run_command "git clone --recursive https://github.com/domoticz/domoticz.git" "$sudo_available"
 run_command "cd domoticz" "$sudo_available"
 run_command "cmake -DCMAKE_BUILD_TYPE=Release ." "$sudo_available"
