@@ -117,4 +117,44 @@ EXIT;
 # Ausführung der MySQL-Befehle
 echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
 
-run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql
+run_command "mysql -u root -p icinga_ido_db < /usr/share/icinga2-ido-mysql/schema/mysql.sql" "$sudo_available"
+
+# Anpassungen in der ido-mysql.conf-Datei
+ido_mysql_conf="/etc/icinga2/features-available/ido-mysql.conf"
+run_command "sed -i \"s/^library.*$/library \\"db_ido_mysql\\"/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^object.*IDOConnection.*$/object IdoMysqlConnection \\"ido-mysql\\" \{/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*user.*=.*$/  user = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*password.*=.*$/  password = \\"icinga_ido\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*host.*=.*$/  host = \\"localhost\\",/\" \"$ido_mysql_conf\"" "$sudo_available"
+run_command "sed -i \"s/^.*database.*=.*$/  database = \\"icinga_ido_db\\",/" "$ido_mysql_conf" "$sudo_available"
+run_command "sed -i \"s/^.*}/\}/\" \"$ido_mysql_conf\"" "$sudo_available"
+
+run_command "icinga2 feature enable ido-mysql" "$sudo_available"
+
+run_command "systemctl restart icinga2" "$sudo_available"
+
+run_command "apt install icingaweb2 icingacli -y" "$sudo_available"
+
+
+# MySQL-Befehle
+mysql_commands="
+CREATE DATABASE icingaweb2;
+GRANT ALL ON icingaweb2.* TO 'icingaweb2user'@'localhost' IDENTIFIED BY 'icingaweb2user';
+FLUSH PRIVILEGES;
+EXIT;
+"
+
+# Ausführung der MySQL-Befehle
+echo "$mysql_commands" | run_command "mysql -u \"$mysql_user\" -p\"$mysql_password\"" "$sudo_available"
+
+# Erstelle das Token
+icingacli_output=$(run_command "icingacli setup token create" "$sudo_available")
+
+# Extrahiere das Token
+icingacli_token=$(echo "$icingacli_output" | grep -oP 'The newly generated setup token is: \K.*')
+
+run_command "apt install xclip -y" "$sudo_available"
+
+echo "$icingacli_token" | xclip -selection clipboard
+
+run_command "apt upgrade -y" "$sudo_available"
