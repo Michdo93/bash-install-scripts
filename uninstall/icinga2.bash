@@ -42,6 +42,11 @@ run_command "rm /etc/apt/sources.list.d/icinga-focal.list" "$sudo_available"
 # Lösche Datenbank und Benutzer in MariaDB
 run_command "mysql -u root -p -e 'DROP DATABASE IF EXISTS icinga_ido_db;'" "$sudo_available"
 run_command "mysql -u root -p -e 'DROP USER IF EXISTS icinga_ido@localhost;'" "$sudo_available"
+run_command "mysql -u root -p -e 'DROP DATABASE IF EXISTS icingaweb2;'" "$sudo_available"
+run_command "mysql -u root -p -e 'DROP USER IF EXISTS icingaweb2user@localhost;'" "$sudo_available"
+
+# Deinstalliere icingaweb2 und icingacli
+run_command "apt remove --purge icingaweb2 icingacli -y" "$sudo_available"
 
 # Aktualisiere Paketlisten
 run_command "apt update" "$sudo_available"
