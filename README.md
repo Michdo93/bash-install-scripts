@@ -826,7 +826,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for MariaDB are `mariadb_root` and `mariadb_root`. You can change it with: 
 
 ```
-./mariadb-change-root-pwd.bash
+./config/mariadb-change-root-pwd.bash
 ```
 
 or
@@ -852,7 +852,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for MySQL are `mysql_root` and `mysql_root`. You can change it with: 
 
 ```
-./mysql-change-root-pwd.bash
+./config/mysql-change-root-pwd.bash
 ```
 
 or
@@ -864,7 +864,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 ### Creating new MySQL user
 
 ```
-./mysql-create-new-user.bash
+./config/mysql-create-new-user.bash
 ```
 
 or
@@ -878,7 +878,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for Nextcloud are `nextcloud` and `nextcloud`. You can change it with: 
 
 ```
-./nextcloud-change-nextcloud-pwd.bash
+./config/nextcloud-change-nextcloud-pwd.bash
 ```
 
 or
