@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Aktuelles Verzeichnis
-skriptVerzeichnis="."
+skriptVerzeichnis="./install"
 
 # Arrays für die verschiedenen Skripte
 vorherigeSkripte=()
