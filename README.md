@@ -283,7 +283,7 @@ You can uninstall it with:
 wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/uninstall/influxdb2.bash -O - | bash
 ```
 
-## ISC DHCP server
+### ISC DHCP server
 
 You can install it with:
 
@@ -725,7 +725,7 @@ You can uninstall it with:
 wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/uninstall/virtualbox.bash -O - | bash
 ```
 
-## Visual Studio Code
+### Visual Studio Code
 
 You can install it with:
 
