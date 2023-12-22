@@ -113,7 +113,7 @@ After downloading the bash scripts you can run this scripts separately as follow
 ./influxdb2.bash
 ```
 
-## ISC DHCP server
+### ISC DHCP server
 
 ```
 ./isc-dhcp-server.bash
@@ -293,7 +293,7 @@ After downloading the bash scripts you can run this scripts separately as follow
 ./virtualbox.bash
 ```
 
-## Visual Studio Code
+### Visual Studio Code
 
 ```
 ./vscode.bash
