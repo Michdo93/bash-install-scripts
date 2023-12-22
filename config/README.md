@@ -10,7 +10,7 @@ Because several scripts run automatically and the applications are installed, th
 The default username and password for Icinga IDO are `icinga_ido` and `icinga_ido`. You can change it with: 
 
 ```
-./config/icinga2-change-icinga_ido-pwd.bash
+./icinga2-change-icinga_ido-pwd.bash
 ```
 
 or
@@ -24,7 +24,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for Icinga Web 2 are `icingaweb2user` and `icingaweb2user`. You can change it with: 
 
 ```
-./config/icinga2-change-icingaweb2user-pwd.bash
+./icinga2-change-icingaweb2user-pwd.bash
 ```
 
 or
@@ -38,7 +38,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for InfluxDB 2 are `admin` and `influxdb`. You can change it with: 
 
 ```
-./config/influxdb2-change-admin-pwd.bash
+./influxdb2-change-admin-pwd.bash
 ```
 
 or
@@ -64,7 +64,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 ### Creating new MariaDB user
 
 ```
-./config/mariadb-create-new-user.bash
+./mariadb-create-new-user.bash
 ```
 
 or
@@ -117,7 +117,7 @@ wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config
 The default username and password for ownCloud are `owncloud` and `owncloud`. You can change it with: 
 
 ```
-./config/owncloud-change-owncloud-pwd.bash
+./owncloud-change-owncloud-pwd.bash
 ```
 
 or
