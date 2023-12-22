@@ -142,7 +142,29 @@ fi
 sudo systemctl enable docker.service
 sudo systemctl start docker.service
 
-# Container starten
-docker-compose -f "$compose_file" up -d
+exec_command="docker-compose -f $compose_file up -d --remove-orphans"
+stop_command="docker-compose -f $compose_file down"
 
-echo "Der Container wurde gestartet und ist auf Port $available_port erreichbar."
+# Service-Datei erstellen
+service_file="/etc/systemd/system/adguardhome-sync-setup.service"
+cat > "$service_file" <<EOL
+[Unit]
+Description=AdGuardHome Sync
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$config_dir
+ExecStart=$exec_command
+ExecStop=$stop_command
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# systemd aktualisieren und Service registrieren
+sudo systemctl daemon-reload
+sudo systemctl enable adguardhome-sync-setup.service
+sudo systemctl start adguardhome-sync-setup.service
