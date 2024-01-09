@@ -102,6 +102,12 @@ RestartSec=30s
 WantedBy=openhab.service
 EOL
 
+run_command "mkdir -p $HABAPP_CONF/rules" "$sudo_available"
+run_command "mkdir -p $HABAPP_CONF/params" "$sudo_available"
+run_command "mkdir -p $HABAPP_CONF/config" "$sudo_available"
+run_command "mkdir -p $HABAPP_CONF/lib" "$sudo_available"
+run_command "chown -R openhab:openhab $HABAPP_CONF" "$sudo_available"
+
 # systemd-Service aktivieren und starten
 run_command "systemctl enable habapp.service" "$sudo_available"
 run_command "systemctl start habapp.service" "$sudo_available"
