@@ -8,7 +8,7 @@ A few bash installation scripts for Ubuntu, Raspbian and Debian.
 ```
 git clone https://github.com/Michdo93/bash-install-scripts
 cd bash-install-scripts
-chmod -R +x *.bash
+find . -type f -name "*.bash" -exec chmod +x {} \;
 ```
 
 ### Install
