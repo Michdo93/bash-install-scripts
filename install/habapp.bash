@@ -65,14 +65,15 @@ HABAPP_DIR="/opt/habapp"
 
 # Hier wird sichergestellt, dass das Verzeichnis existiert und für den openhab-Benutzer zugänglich ist
 run_command "mkdir -p $HABAPP_DIR" "$sudo_available"
-run_command "chown -R openhab:openhab $HABAPP_DIR" "$sudo_available"
 
 # Wechseln zum HABApp-Verzeichnis und Installation in einem Virtual Environment
 cd $HABAPP_DIR
-run_command "sudo -u openhab python3 -m venv env" "$sudo_available"
+run_command "sudo python3 -m venv env" "$sudo_available"
 source env/bin/activate
 python3 -m pip install --upgrade pip setuptools
 python3 -m pip install habapp
+
+run_command "chown -R openhab:openhab $HABAPP_DIR" "$sudo_available"
 
 # HABApp konfigurieren und starten
 run_command "habapp --config /etc/openhab/habapp" "$sudo_available"
