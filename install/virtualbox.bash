@@ -15,12 +15,11 @@ run_command() {
     local sudo_available="$2"
 
     if [ -n "$sudo_available" ]; then
-        sudo "$cmd"
+        sudo $cmd
     else
-        "$cmd"
+        $cmd
     fi
 }
-
 # Aktualisieren und Upgraden
 sudo_available=$(check_sudo)
 run_command "apt update" "$sudo_available"
