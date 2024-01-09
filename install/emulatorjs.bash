@@ -25,9 +25,9 @@ run_command() {
     local sudo_available="$2"
 
     if [ -n "$sudo_available" ]; then
-        sudo "$cmd"
+        sudo $cmd
     else
-        "$cmd"
+        $cmd
     fi
 }
 
