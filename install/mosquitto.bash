@@ -15,21 +15,24 @@ run_command() {
     local sudo_available="$2"
 
     if [ -n "$sudo_available" ]; then
-        sudo "$cmd"
+        sudo $cmd
     else
-        "$cmd"
+        $cmd
     fi
 }
 
 # Aktualisieren und Upgraden
 sudo_available=$(check_sudo)
+
+echo $sudo_available
+
 run_command "apt update" "$sudo_available"
 run_command "apt upgrade -y" "$sudo_available"
 
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
-run_command "apt-add-repository ppa:mosquitto-dev/mosquitto-ppa" "$sudo_available"
+run_command "echo -e '\n' | apt-add-repository ppa:mosquitto-dev/mosquitto-ppa" "$sudo_available"
 run_command "apt update" "$sudo_available"
 run_command "apt install mosquitto -y" "$sudo_available"
 run_command "apt install mosquitto-clients -y" "$sudo_available"
