@@ -62,6 +62,7 @@ fi
 
 # Schritte für die Installation von HABApp
 HABAPP_DIR="/opt/habapp"
+HABAPP_CONF="/etc/openhab/habapp"
 
 cd /opt
 run_command "sudo python3 -m venv habapp" "$sudo_available"
@@ -72,9 +73,11 @@ python3 -m pip install --upgrade pip setuptools
 python3 -m pip install habapp
 
 run_command "chown -R openhab:openhab $HABAPP_DIR" "$sudo_available"
+run_command "mkdir -p $HABAPP_CONF" "$sudo_available"
+run_command "chown -R openhab:openhab $HABAPP_CONF" "$sudo_available"
 
 # HABApp konfigurieren und starten
-run_command "habapp --config /etc/openhab/habapp" "$sudo_available"
+run_command "habapp --config $HABAPP_CONF" "$sudo_available"
 
 # systemd-Service-Datei erstellen
 cat <<EOL | run_command "tee /etc/systemd/system/habapp.service" "$sudo_available"
@@ -91,7 +94,6 @@ Type=simple
 User=openhab
 Group=openhab
 UMask=002
-Environment=LD_LIBRARY_PATH=/home/<user>/catkin_ws/devel/lib:/opt/ros/<ros_distro>/lib
 ExecStart=/bin/bash -c 'source /etc/environment && /opt/habapp/env/bin/habapp -c /etc/openhab/habapp'
 Restart=on-failure
 RestartSec=30s
