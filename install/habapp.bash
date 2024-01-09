@@ -64,7 +64,7 @@ fi
 HABAPP_DIR="/opt/habapp"
 
 cd /opt
-run_command "sudo python3 -m venv env" "$sudo_available"
+run_command "sudo python3 -m venv habapp" "$sudo_available"
 
 cd $HABAPP_DIR
 source env/bin/activate
