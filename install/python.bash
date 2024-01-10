@@ -41,5 +41,6 @@ echo "1" | run_command "update-alternatives --config python" "$sudo_available"
 
 curl https://raw.githubusercontent.com/Michdo93/get-pip/main/get-pip.py -o get-pip.py
 python get-pip.py
+rm get-pip.py
 
 curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | run_command "python3" "$sudo_available"
