@@ -899,3 +899,17 @@ or
 ```
 wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config/owncloud-change-owncloud-pwd.bash -O - | bash
 ```
+
+### Enable all opened ports by nmap scan for ufw
+
+Please install and run all applications first. Then make sure that nmap and ufw are installed. This script checks which ports are executed by various applications, then activates the ufw firewall and reopens the previously executed ports. This ensures that all unused ports remain closed.
+
+```
+./config/ufw-ports.bash
+```
+
+or
+
+```
+wget https://raw.githubusercontent.com/Michdo93/bash-install-scripts/main/config/ufw-ports.bash -O - | bash
+```
