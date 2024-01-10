@@ -68,7 +68,7 @@ cd /opt
 run_command "sudo python3 -m venv habapp" "$sudo_available"
 
 cd $HABAPP_DIR
-source env/bin/activate
+source $HABAPP_DIR/bin/activate
 python3 -m pip install --upgrade pip setuptools
 python3 -m pip install habapp
 
