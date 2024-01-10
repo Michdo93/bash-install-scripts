@@ -36,6 +36,8 @@ run_command "update-alternatives --install /usr/bin/python python /usr/bin/pytho
 run_command "update-alternatives --install /usr/bin/python python /usr/bin/python3 1" "$sudo_available"
 
 #sudo update-alternatives --config python
+run_command "update-alternatives --config python" "$sudo_available"
+echo "1" | run_command "update-alternatives --config python" "$sudo_available"
 
 curl https://raw.githubusercontent.com/Michdo93/get-pip/main/get-pip.py -o get-pip.py
 python get-pip.py
