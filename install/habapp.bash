@@ -94,7 +94,7 @@ Type=simple
 User=openhab
 Group=openhab
 UMask=002
-ExecStart=/bin/bash -c 'source /etc/environment && /opt/habapp/env/bin/habapp -c /etc/openhab/habapp'
+ExecStart=/opt/habapp/bin/habapp -c /etc/openhab/habapp
 Restart=on-failure
 RestartSec=30s
 
