@@ -30,7 +30,7 @@ run_command "apt upgrade -y" "$sudo_available"
 run_command "apt install curl git wget net-tools python3-pip python3-venv -y" "$sudo_available"
 
 # Überprüfen, ob openHAB installiert ist
-if ! command -v openhab &> /dev/null; then
+if [ -d "/etc/openhab" ] || ssh -p 8101 openhab@localhost true || id "openhab" &>/dev/null; then
     # Install Java
     run_command "apt install openjdk-17-jdk openjdk-17-jre -y" "$sudo_available"
 
