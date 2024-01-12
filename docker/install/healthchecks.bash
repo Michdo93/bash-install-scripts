@@ -1,5 +1,145 @@
 #!/bin/bash
 
-# Bash-Datei f�r healthchecks
-# F�gen Sie hier Ihre Befehle f�r den Dienst healthchecks hinzu.
+# Verzeichnis für Docker-Konfigurationen
+config_dir="/path/to/healthchecks/config"
 
+# Funktion, um zu prüfen, ob Docker installiert ist
+is_docker_installed() {
+    if command -v docker &> /dev/null; then
+        return 0  # Docker ist installiert
+    else
+        return 1  # Docker ist nicht installiert
+    fi
+}
+
+# Funktion, um zu prüfen, ob Docker Compose installiert ist
+is_docker_compose_installed() {
+    if command -v docker-compose &> /dev/null; then
+        return 0  # Docker Compose ist installiert
+    else
+        return 1  # Docker Compose ist nicht installiert
+    fi
+}
+
+# Funktion, um zu prüfen, ob sudo verfügbar ist
+check_sudo() {
+    if command -v sudo &> /dev/null; then
+        echo "sudo"
+    else
+        echo ""
+    fi
+}
+
+# Funktion zum Ausführen von Befehlen mit oder ohne sudo
+run_command() {
+    local cmd="$1"
+    local sudo_available="$2"
+
+    if [ -n "$sudo_available" ]; then
+        sudo $cmd
+    else
+        $cmd
+    fi
+}
+
+# Überprüfen, ob Docker bereits installiert ist
+if is_docker_installed; then
+    echo "Docker ist bereits installiert."
+else
+    # Installieren von Docker
+    sudo_available=$(check_sudo)
+    run_command "apt update" "$sudo_available"
+    run_command "apt upgrade -y" "$sudo_available"
+    run_command "apt install curl git wget net-tools ca-certificates gnupg -y" "$sudo_available"
+    run_command "install -m 0755 -d /etc/apt/keyrings" "$sudo_available"
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    run_command "chmod a+r /etc/apt/keyrings/docker.gpg" "$sudo_available"
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | run_command "tee /etc/apt/sources.list.d/docker.list > /dev/null" "$sudo_available"
+    run_command "apt update" "$sudo_available"
+    run_command "apt install docker-ce docker-ce-cli containerd.io -y" "$sudo_available"
+fi
+
+# Überprüfen, ob Docker Compose bereits installiert ist
+if is_docker_compose_installed; then
+    echo "Docker Compose ist bereits installiert."
+else
+    # Installieren von Docker Compose
+    sudo_available=$(check_sudo)
+    run_command "curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose" "$sudo_available"
+    run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
+fi
+
+# Docker Compose-Datei erstellen, wenn sie nicht existiert
+compose_file="$config_dir/healthchecks.yml"
+if [ ! -f "$compose_file" ]; then
+    cat > "$compose_file" <<EOL
+version: "2.1"
+services:
+  healthchecks:
+    image: lscr.io/linuxserver/healthchecks:latest
+    container_name: healthchecks
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SITE_ROOT=
+      - SITE_NAME=
+      - DEFAULT_FROM_EMAIL=
+      - EMAIL_HOST=
+      - EMAIL_PORT=
+      - EMAIL_HOST_USER=
+      - EMAIL_HOST_PASSWORD=
+      - EMAIL_USE_TLS=
+      - SUPERUSER_EMAIL=
+      - SUPERUSER_PASSWORD=
+      - REGENERATE_SETTINGS= #optional
+      - ALLOWED_HOSTS= #optional
+      - APPRISE_ENABLED= #optional
+      - DEBUG= #optional
+      - INTEGRATIONS_ALLOW_PRIVATE_IPS= #optional
+      - PING_EMAIL_DOMAIN= #optional
+      - SECRET_KEY= #optional
+      - SITE_LOGO_URL= #optional
+    volumes:
+      - $config_dir:/config
+    ports:
+      - 8000:8000
+      - 2525:2525 #optional
+    restart: unless-stopped
+EOL
+
+    echo "Docker Compose-Datei für Healthchecks erstellt."
+else
+    echo "Die Docker Compose-Datei existiert bereits."
+fi
+
+# Container nach dem Systemstart ausführen
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+
+exec_command="docker-compose -f $compose_file up -d --remove-orphans"
+stop_command="docker-compose -f $compose_file down"
+
+# Service-Datei erstellen
+service_file="/etc/systemd/system/healthchecks.service"
+cat > "$service_file" <<EOL
+[Unit]
+Description=Healthchecks
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$config_dir
+ExecStart=$exec_command
+ExecStop=$stop_command
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# systemd aktualisieren und Service registrieren
+sudo systemctl daemon-reload
+sudo systemctl enable healthchecks.service
+sudo systemctl start healthchecks.service
