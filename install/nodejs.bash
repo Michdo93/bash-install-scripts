@@ -31,7 +31,11 @@ run_command "apt install curl git wget net-tools -y" "$sudo_available"
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 
-source ~/.bashrc
+. ~/.bashrc
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Laden von nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # Laden von nvm bash_completion
 
 nvm install --lts
 

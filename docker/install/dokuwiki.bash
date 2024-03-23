@@ -2,6 +2,13 @@
 
 # Verzeichnis für Docker-Konfigurationen
 config_dir="/opt/docker/configs"
+container_dir="/opt/docker/containers"
+
+# Compose-Datei
+compose_file="$config_dir/dokuwiki.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/dokuwiki.service"
 
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
@@ -60,6 +67,8 @@ else
 fi
 
 run_command "mkdir -p $config_dir" "$sudo_available"
+run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/dokuwiki" "$sudo_available"
 
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
@@ -71,13 +80,50 @@ else
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
 
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
+else
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
+
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
+
 # Überprüfen, ob dokuwiki bereits installiert ist
 if docker ps -a --format '{{.Names}}' | grep -q "^dokuwiki$"; then
     echo "DokuWiki ist bereits installiert."
 else
-    # Docker Compose-Datei erstellen
-    compose_file="$config_dir/dokuwiki.yml"
-    cat > "$compose_file" <<EOL
+    if [ ! -f "$compose_file" ]; then
+        # Einen verfügbaren Port finden
+        port1=$(find_next_port 80)
+        port2=$(find_next_port 443)
+
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 version: "2.1"
 services:
   dokuwiki:
@@ -88,21 +134,23 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - $config_dir/dokuwiki:/config
+      - $container_dir/dokuwiki:/config
     ports:
-      - 80:80
-      - 443:443 #optional
+      - "$port1:80"
+      - "$port2:443" #optional
     restart: unless-stopped
 EOL
 
-    echo "DokuWiki Docker Compose-Datei erstellt."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/dokuwiki.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=DokuWiki

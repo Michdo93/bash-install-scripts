@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/adguardhome-sync.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/adguardhome-sync.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -62,6 +68,7 @@ fi
 
 run_command "mkdir -p $config_dir" "$sudo_available"
 run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/adguardhome-sync/config" "$sudo_available"
 
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
@@ -81,7 +88,6 @@ else
     sudo_available=$(check_sudo)
     run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
 fi
-
 
 # Prüfen, ob nmap installiert ist, andernfalls installieren
 if ! command -v nmap &> /dev/null; then
@@ -107,14 +113,16 @@ find_next_port() {
     echo "$port"
 }
 
-# Docker Compose-Datei erstellen, wenn sie nicht existiert
-compose_file="$config_dir/adguardhome-sync.yml"
-if [ ! -f "$compose_file" ]; then
-    # Einen verfügbaren Port finden
-    available_port=$(find_next_port 8080)
+# Überprüfen, ob AdGuard Home Sync bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^adguardhome-sync$"; then
+    echo "AdGuard Home Sync ist bereits installiert."
+else
+    if [ ! -f "$compose_file" ]; then
+        # Einen verfügbaren Port finden
+        available_port=$(find_next_port 8080)
 
-    # Compose-Datei erstellen
-    cat > "$compose_file" <<EOL
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 ---
 version: "2.1"
 services:
@@ -125,7 +133,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - CONFIGFILE=/config/adguardhome-sync.yaml #optional
+      - CONFIGFILE=$config_dir/adguardhome-sync.yml
     volumes:
       - $container_dir/adguardhome-sync/config:/config
     ports:
@@ -133,9 +141,10 @@ services:
     restart: unless-stopped
 EOL
 
-    echo "Docker Compose-Datei erstellt."
-else
-    echo "Die Docker Compose-Datei existiert bereits."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 # Container nach dem Systemstart ausführen
@@ -146,7 +155,6 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/adguardhome-sync-setup.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=AdGuardHome Sync
@@ -166,5 +174,5 @@ EOL
 
 # systemd aktualisieren und Service registrieren
 sudo systemctl daemon-reload
-sudo systemctl enable adguardhome-sync-setup.service
-sudo systemctl start adguardhome-sync-setup.service
+sudo systemctl enable adguardhome-sync.service
+sudo systemctl start adguardhome-sync.service

@@ -2,6 +2,13 @@
 
 # Verzeichnis für Docker-Konfigurationen
 config_dir="/opt/docker/configs"
+container_dir="/opt/docker/containers"
+
+# Compose-Datei
+compose_file="$config_dir/fail2ban.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/fail2ban.service"
 
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
@@ -60,6 +67,8 @@ else
 fi
 
 run_command "mkdir -p $config_dir" "$sudo_available"
+run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/fail2ban/config" "$sudo_available"
 
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
@@ -71,13 +80,46 @@ else
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
 
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
+else
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
+
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
+
 # Überprüfen, ob fail2ban bereits installiert ist
 if docker ps -a --format '{{.Names}}' | grep -q "^fail2ban$"; then
     echo "fail2ban ist bereits installiert."
 else
-    # Docker Compose-Datei erstellen
-    compose_file="$config_dir/fail2ban.yml"
-    cat > "$compose_file" <<EOL
+    if [ ! -f "$compose_file" ]; then
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 version: "2.1"
 services:
   fail2ban:
@@ -93,36 +135,38 @@ services:
       - TZ=Etc/UTC
       - VERBOSITY=-vv #optional
     volumes:
-      - /path/to/appdata/config:/config
+      - $container_dir/fail2ban/config:/config
       - /var/log:/var/log:ro
-      - /path/to/airsonic/log:/remotelogs/airsonic:ro #optional
-      - /path/to/apache2/log:/remotelogs/apache2:ro #optional
-      - /path/to/authelia/log:/remotelogs/authelia:ro #optional
-      - /path/to/emby/log:/remotelogs/emby:ro #optional
-      - /path/to/filebrowser/log:/remotelogs/filebrowser:ro #optional
-      - /path/to/homeassistant/log:/remotelogs/homeassistant:ro #optional
-      - /path/to/lighttpd/log:/remotelogs/lighttpd:ro #optional
-      - /path/to/nextcloud/log:/remotelogs/nextcloud:ro #optional
-      - /path/to/nginx/log:/remotelogs/nginx:ro #optional
-      - /path/to/nzbget/log:/remotelogs/nzbget:ro #optional
-      - /path/to/overseerr/log:/remotelogs/overseerr:ro #optional
-      - /path/to/prowlarr/log:/remotelogs/prowlarr:ro #optional
-      - /path/to/radarr/log:/remotelogs/radarr:ro #optional
-      - /path/to/sabnzbd/log:/remotelogs/sabnzbd:ro #optional
-      - /path/to/sonarr/log:/remotelogs/sonarr:ro #optional
-      - /path/to/unificontroller/log:/remotelogs/unificontroller:ro #optional
-      - /path/to/vaultwarden/log:/remotelogs/vaultwarden:ro #optional
+      - /var/log/airsonic:/remotelogs/airsonic:ro #optional
+      - /var/log/apache2:/remotelogs/apache2:ro #optional
+      - /var/log/authelia:/remotelogs/authelia:ro #optional
+      - /var/log/emby:/remotelogs/emby:ro #optional
+      - /var/log/filebrowser:/remotelogs/filebrowser:ro #optional
+      - /var/log/homeassistant:/remotelogs/homeassistant:ro #optional
+      - /var/log/lighttpd:/remotelogs/lighttpd:ro #optional
+      - /var/log/nextcloud:/remotelogs/nextcloud:ro #optional
+      - /var/log/nginx:/remotelogs/nginx:ro #optional
+      - /var/log/nzbget:/remotelogs/nzbget:ro #optional
+      - /var/log/overseerr:/remotelogs/overseerr:ro #optional
+      - /var/log/prowlarr:/remotelogs/prowlarr:ro #optional
+      - /var/log/radarr:/remotelogs/radarr:ro #optional
+      - /var/log/sabnzbd:/remotelogs/sabnzbd:ro #optional
+      - /var/log/sonarr:/remotelogs/sonarr:ro #optional
+      - /var/log/unificontroller:/remotelogs/unificontroller:ro #optional
+      - /var/log/vaultwarden:/remotelogs/vaultwarden:ro #optional
     restart: unless-stopped
 EOL
 
-    echo "fail2ban Docker Compose-Datei erstellt."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/fail2ban.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=Fail2Ban

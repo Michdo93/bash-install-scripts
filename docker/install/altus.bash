@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/altus.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/altus.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -73,42 +79,74 @@ else
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
 
-# Überprüfen, ob Airsonic-Advanced bereits installiert ist
-if docker ps -a --format '{{.Names}}' | grep -q "^airsonic-advanced$"; then
-    echo "Airsonic-Advanced ist bereits installiert."
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
 else
-    # Einen verfügbaren Port finden
-    available_port=$(find_next_port 4040)
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
 
-    # Docker Compose-Datei erstellen
-    compose_file="$config_dir/airsonic-advanced.yml"
-    cat > "$compose_file" <<EOL
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
+
+# Überprüfen, ob Altus bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^altus$"; then
+    echo "Altus ist bereits installiert."
+else
+    if [ ! -f "$compose_file" ]; then
+        # Einen verfügbaren Port finden
+        port1=$(find_next_port 3000)
+        port2=$(find_next_port 3001)
+
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 ---
-version: "2.1"
 services:
-  airsonic-advanced:
-    image: lscr.io/linuxserver/airsonic-advanced:latest
-    container_name: airsonic-advanced
+  altus:
+    image: lscr.io/linuxserver/altus:latest
+    container_name: altus
+    security_opt:
+      - seccomp:unconfined #optional
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - CONTEXT_PATH=
-      - JAVA_OPTS=
     volumes:
-      - $container_dir/airsonic-advanced/config:/config
-      - /path/to/music:/music
-      - /path/to/playlists:/playlists
-      - /path/to/podcasts:/podcasts
-      - /path/to/other_media:/media
+      - $container_dir/altus/config:/config
     ports:
-      - "$available_port:4040"
-    devices:
-      - /dev/snd:/dev/snd
+      - "$port1:3000"
+      - "$port2:3001"
+    shm_size: "1gb"
     restart: unless-stopped
 EOL
 
-    echo "Airsonic-Advanced Docker Compose-Datei erstellt."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 # Container nach dem Systemstart ausführen
@@ -119,10 +157,9 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/airsonic-advanced.service"
 cat > "$service_file" <<EOL
 [Unit]
-Description=Airsonic-Advanced
+Description=Altus
 After=docker.service
 Requires=docker.service
 
@@ -139,5 +176,5 @@ EOL
 
 # systemd aktualisieren und Service registrieren
 sudo systemctl daemon-reload
-sudo systemctl enable airsonic-advanced.service
-sudo systemctl start airsonic-advanced.service
+sudo systemctl enable altus.service
+sudo systemctl start altus.service

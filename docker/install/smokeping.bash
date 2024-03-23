@@ -2,6 +2,7 @@
 
 # Verzeichnis für Docker-Konfigurationen
 config_dir="/opt/docker/configs"
+container_dir="/opt/docker/containers"
 
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
@@ -68,6 +69,39 @@ else
     run_command "curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose" "$sudo_available"
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
+
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
+else
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
+
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
 
 # Überprüfen, ob SmokePing bereits installiert ist
 if docker ps -a --format '{{.Names}}' | grep -q "^smokeping$"; then

@@ -28,6 +28,7 @@ run_command "apt upgrade -y" "$sudo_available"
 
 # Installieren von Paketen
 run_command "apt install curl git wget net-tools -y" "$sudo_available"
+run_command "apt install expect -y" "sudo_available"
 
 wget -q https://repos.influxdata.com/influxdata-archive_compat.key
 echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
@@ -39,10 +40,19 @@ run_command "apt install influxdb2 -y" "$sudo_available"
 run_command "systemctl start influxdb.service" "$sudo_available"
 run_command "systemctl enable influxdb.service" "$sudo_available"
 
-# Setze die InfluxDB-Zugangsdaten
-INFLUXDB_HOST="localhost"
-INFLUXDB_PORT="8086"
-INFLUXDB_USERNAME="admin"
-INFLUXDB_PASSWORD="influxdb"
+expect_script=$(cat << 'EOF'
+spawn influx setup
+expect "Please type your primary username" { send "influxdb\n" }
+expect "Please type your password" { send "influxdb\n" }
+expect "Please type your password again" { send "influxdb\n" }
+expect "Please type your primary organization name" { send "influxdb\n" }
+expect "Please type your primary bucket name" { send "influxdb\n" }
+expect "Please type your retention period in hours, or 0 for infinite" { send "0\n" }
+expect "Setup with these parameters?" { send "\n" }
+expect eof
+EOF
+)
 
-influx -host "$INFLUXDB_HOST" -port "$INFLUXDB_PORT" -token "$INFLUXDB_USERNAME:$INFLUXDB_PASSWORD" -organization "influxdb" -execute "CREATE USER $INFLUXDB_USERNAME WITH PASSWORD '$INFLUXDB_PASSWORD' WITH ALL PRIVILEGES"
+# Führe das Expect-Skript aus
+echo "$expect_script" | expect -
+

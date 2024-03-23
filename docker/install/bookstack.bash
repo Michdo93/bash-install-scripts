@@ -4,6 +4,15 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/bookstack.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/bookstack.service"
+
+mysql_root_password="mysql"
+mysql_user_password="bookstack"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -62,6 +71,7 @@ fi
 
 run_command "mkdir -p $config_dir" "$sudo_available"
 run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/bookstack/db_data" "$sudo_available"
 
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
@@ -73,13 +83,49 @@ else
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
 
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
+else
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
+
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
+
 # Überprüfen, ob Bookstack bereits installiert ist
 if docker ps -a --format '{{.Names}}' | grep -q "^bookstack$"; then
     echo "Bookstack ist bereits installiert."
 else
-    # Docker Compose-Datei erstellen
-    compose_file="$config_dir/bookstack.yml"
-    cat > "$compose_file" <<EOL
+    if [ ! -f "$compose_file" ]; then
+        # Einen verfügbaren Port finden
+        available_port=$(find_next_port 6875)
+
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 ---
 version: "2"
 services:
@@ -93,12 +139,12 @@ services:
       - DB_HOST=bookstack_db
       - DB_PORT=3306
       - DB_USER=bookstack
-      - DB_PASS=<yourdbpass>
+      - DB_PASS=$mysql_user_password
       - DB_DATABASE=bookstackapp
     volumes:
       - $container_dir/bookstack/app_data:/config
     ports:
-      - 6875:80
+      - "$available_port:80"
     restart: unless-stopped
     depends_on:
       - bookstack_db
@@ -108,17 +154,20 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - MYSQL_ROOT_PASSWORD=<yourdbpass>
+      - MYSQL_ROOT_PASSWORD=$mysql_root_password
       - TZ=Europe/London
       - MYSQL_DATABASE=bookstackapp
       - MYSQL_USER=bookstack
-      - MYSQL_PASSWORD=<yourdbpass>
+      - MYSQL_PASSWORD=$mysql_user_password
     volumes:
       - $container_dir/bookstack/db_data:/config
     restart: unless-stopped
 EOL
 
-    echo "Bookstack Docker Compose-Datei erstellt."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 # Container nach dem Systemstart ausführen
@@ -129,7 +178,6 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/bookstack.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=Bookstack

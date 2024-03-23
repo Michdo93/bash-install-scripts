@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/darktable.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/darktable.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -62,6 +68,7 @@ fi
 
 run_command "mkdir -p $config_dir" "$sudo_available"
 run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/darktable/config" "$sudo_available"
 
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
@@ -73,13 +80,50 @@ else
     run_command "chmod +x /usr/local/bin/docker-compose" "$sudo_available"
 fi
 
+# Überprüfen, ob Portainer bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^portainer$"; then
+    echo "Portainer ist bereits installiert."
+else
+    # Installieren und Starten von Portainer
+    sudo_available=$(check_sudo)
+    run_command "docker run -d -p 9000:9000 -p 8000:8000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer:latest" "$sudo_available"
+fi
+
+# Prüfen, ob nmap installiert ist, andernfalls installieren
+if ! command -v nmap &> /dev/null; then
+    sudo apt update
+    sudo apt install nmap -y
+fi
+
+# Funktion zum Überprüfen der Portverfügbarkeit
+check_port() {
+    local port="$1"
+    nmap -p "$port" 127.0.0.1 | grep -qE "open|closed"
+}
+
+# Funktion zum Suchen des nächsten verfügbaren Ports
+find_next_port() {
+    local base_port="$1"
+    local port="$base_port"
+
+    while check_port "$port"; do
+        ((port++))
+    done
+
+    echo "$port"
+}
+
 # Überprüfen, ob darktable bereits installiert ist
 if docker ps -a --format '{{.Names}}' | grep -q "^darktable$"; then
     echo "darktable ist bereits installiert."
 else
-    # Docker Compose-Datei erstellen
-    compose_file="$config_dir/darktable.yml"
-    cat > "$compose_file" <<EOL
+    if [ ! -f "$compose_file" ]; then
+        # Einen verfügbaren Port finden
+        port1=$(find_next_port 3000)
+        port1=$(find_next_port 3001)
+
+        # Compose-Datei erstellen
+        cat > "$compose_file" <<EOL
 ---
 version: "2.1"
 services:
@@ -95,12 +139,15 @@ services:
     volumes:
       - $container_dir/darktable/config:/config
     ports:
-      - 3000:3000
-      - 3001:3001
+      - "$port1:3000"
+      - "$port2:3001"
     restart: unless-stopped
 EOL
 
-    echo "darktable Docker Compose-Datei erstellt."
+        echo "Docker Compose-Datei erstellt."
+    else
+        echo "Die Docker Compose-Datei existiert bereits."
+    fi
 fi
 
 # Container nach dem Systemstart ausführen
@@ -111,7 +158,6 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/darktable.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=darktable
