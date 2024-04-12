@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/nzbhydra2.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/nzbhydra2-setup.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -129,7 +135,6 @@ if docker ps -a --format '{{.Names}}' | grep -q "^nzbhydra2$"; then
     echo "NZBHydra2 ist bereits installiert."
 else
     # NZBHydra2 Docker Compose-Datei erstellen
-    compose_file="$config_dir/nzbhydra2.yml"
     if [ ! -f "$compose_file" ]; then
         # Einen verfügbaren Port finden
         available_port=$(find_next_port 5076)
@@ -167,7 +172,6 @@ EOL
     stop_command="docker-compose -f $compose_file down"
 
     # Service-Datei erstellen
-    service_file="/etc/systemd/system/nzbhydra2-setup.service"
     cat > "$service_file" <<EOL
 [Unit]
 Description=NZBHydra2 Setup

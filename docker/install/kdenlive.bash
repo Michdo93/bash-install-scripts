@@ -4,7 +4,10 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
 compose_file="$config_dir/docker-compose.yml"
+
+# Service-Datei
 service_file="/etc/systemd/system/kdenlive.service"
 
 # Überprüfen, ob Docker installiert ist

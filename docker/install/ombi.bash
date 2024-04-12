@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/ombi.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/ombi-setup.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -129,7 +135,6 @@ if docker ps -a --format '{{.Names}}' | grep -q "^ombi$"; then
     echo "Ombi ist bereits installiert."
 else
     # Ombi Docker Compose-Datei erstellen
-    compose_file="$config_dir/ombi.yml"
     if [ ! -f "$compose_file" ]; then
         # Einen verfügbaren Port finden
         available_port=$(find_next_port 3579)
@@ -166,7 +171,6 @@ EOL
     stop_command="docker-compose -f $compose_file down"
 
     # Service-Datei erstellen
-    service_file="/etc/systemd/system/ombi-setup.service"
     cat > "$service_file" <<EOL
 [Unit]
 Description=Ombi Setup

@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/quassel-core.yml"
+
+# Service-Datei
+
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -126,7 +132,6 @@ if docker ps -a --format '{{.Names}}' | grep -q "^quassel-core$"; then
     echo "Quassel Core ist bereits installiert."
 else
     # Quassel Core Docker Compose-Datei erstellen
-    compose_file="$config_dir/quassel-core.yml"
     if [ ! -f "$compose_file" ]; then
         # Einen verfügbaren Port finden
         available_port=$(find_next_port 4242)

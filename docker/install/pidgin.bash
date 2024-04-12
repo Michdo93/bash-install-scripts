@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/pidgin.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/pidgin-setup.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -126,7 +132,6 @@ if docker ps -a --format '{{.Names}}' | grep -q "^pidgin$"; then
     echo "Pidgin ist bereits installiert."
 else
     # Pidgin Docker Compose-Datei erstellen
-    compose_file="$config_dir/pidgin.yml"
     if [ ! -f "$compose_file" ]; then
         # Einen verfügbaren Port finden
         available_port=$(find_next_port 3000)
@@ -162,7 +167,6 @@ EOL
     stop_command="docker-compose -f $compose_file down"
 
     # Service-Datei erstellen
-    service_file="/etc/systemd/system/pidgin-setup.service"
     cat > "$service_file" <<EOL
 [Unit]
 Description=Pidgin Setup

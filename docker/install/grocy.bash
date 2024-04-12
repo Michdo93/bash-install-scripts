@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/grocy.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/grocy-setup.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -42,6 +48,10 @@ run_command() {
         $cmd
     fi
 }
+
+run_command "mkdir -p $config_dir" "$sudo_available"
+run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/grocy/config" "$sudo_available"
 
 # Überprüfen, ob Docker bereits installiert ist
 if is_docker_installed; then
@@ -104,7 +114,6 @@ find_next_port() {
 }
 
 # Docker Compose-Datei erstellen, wenn sie nicht existiert
-compose_file="$config_dir/grocy.yml"
 if [ ! -f "$compose_file" ]; then
     cat > "$compose_file" <<EOL
 version: "2.1"
@@ -136,7 +145,6 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/grocy-setup.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=Grocy

@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/headphones.yml"
+
+# Service-Datei
+service_file="/etc/systemd/system/headphones.service"
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -60,6 +66,10 @@ else
     run_command "apt install docker-ce docker-ce-cli containerd.io -y" "$sudo_available"
 fi
 
+run_command "mkdir -p $config_dir" "$sudo_available"
+run_command "mkdir -p $container_dir" "$sudo_available"
+run_command "mkdir -p $container_dir/headphones/config" "$sudo_available"
+
 # Überprüfen, ob Docker Compose bereits installiert ist
 if is_docker_compose_installed; then
     echo "Docker Compose ist bereits installiert."
@@ -104,7 +114,6 @@ find_next_port() {
 }
 
 # Docker Compose-Datei erstellen, wenn sie nicht existiert
-compose_file="$config_dir/headphones.yml"
 if [ ! -f "$compose_file" ]; then
     cat > "$compose_file" <<EOL
 version: "2.1"
@@ -138,7 +147,6 @@ exec_command="docker-compose -f $compose_file up -d --remove-orphans"
 stop_command="docker-compose -f $compose_file down"
 
 # Service-Datei erstellen
-service_file="/etc/systemd/system/headphones.service"
 cat > "$service_file" <<EOL
 [Unit]
 Description=Headphones

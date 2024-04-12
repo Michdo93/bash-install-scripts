@@ -4,6 +4,12 @@
 config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
+# Compose-Datei
+compose_file="$config_dir/syslog-ng.yml"
+
+# Service-Datei
+
+
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
     if command -v docker &> /dev/null; then
@@ -108,7 +114,6 @@ if docker ps -a --format '{{.Names}}' | grep -q "^syslog-ng$"; then
     echo "syslog-ng ist bereits installiert."
 else
     # syslog-ng Docker Compose-Datei erstellen
-    compose_file="$config_dir/syslog-ng.yml"
     if [ ! -f "$compose_file" ]; then
         # Compose-Datei erstellen
         cat > "$compose_file" <<EOL
