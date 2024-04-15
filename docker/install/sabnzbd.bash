@@ -8,7 +8,7 @@ container_dir="/opt/docker/containers"
 compose_file="$config_dir/sabnzbd.yml"
 
 # Service-Datei
-
+service_file="/etc/systemd/system/sabnzbd.service"
 
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
@@ -143,3 +143,33 @@ EOL
     # Docker Compose ausführen
     run_command "docker-compose -f $compose_file up -d" "$sudo_available"
 fi
+
+# Container nach dem Systemstart ausführen
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+
+exec_command="docker-compose -f $compose_file up -d --remove-orphans"
+stop_command="docker-compose -f $compose_file down"
+
+# Service-Datei erstellen
+cat > "$service_file" <<EOL
+[Unit]
+Description=sabnzbd
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$config_dir
+ExecStart=$exec_command
+ExecStop=$stop_command
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# systemd aktualisieren und Service registrieren
+sudo systemctl daemon-reload
+sudo systemctl enable sabnzbd.service
+sudo systemctl start sabnzbd.service

@@ -5,10 +5,10 @@ config_dir="/opt/docker/configs"
 container_dir="/opt/docker/containers"
 
 # Compose-Datei
-compose_file="$config_dir/quassel-web.yml"
+compose_file="$config_dir/radarr.yml"
 
 # Service-Datei
-
+service_file="/etc/systemd/system/radarr.service"
 
 # Funktion, um zu prüfen, ob Docker installiert ist
 is_docker_installed() {
@@ -127,11 +127,11 @@ find_next_port() {
     echo "$port"
 }
 
-# Überprüfen, ob Quassel Web bereits installiert ist
-if docker ps -a --format '{{.Names}}' | grep -q "^quassel-web$"; then
-    echo "Quassel Web ist bereits installiert."
+# Überprüfen, ob radarr bereits installiert ist
+if docker ps -a --format '{{.Names}}' | grep -q "^radarr$"; then
+    echo "radarr ist bereits installiert."
 else
-    # Quassel Web Docker Compose-Datei erstellen
+    # radarr Docker Compose-Datei erstellen
     if [ ! -f "$compose_file" ]; then
         # Einen verfügbaren Port finden
         available_port=$(find_next_port 64080)
@@ -140,30 +140,54 @@ else
         cat > "$compose_file" <<EOL
 ---
 services:
-  quassel-web:
-    image: lscr.io/linuxserver/quassel-web:latest
-    container_name: quassel-web
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - QUASSEL_CORE=192.168.1.10 #optional
-      - QUASSEL_PORT=4242 #optional
-      - QUASSEL_HTTPS= #optional
-      - URL_BASE=/quassel #optional
     volumes:
-      - /path/to/data:/config
+      - /path/to/radarr/data:/config
+      - /path/to/movies:/movies #optional
+      - /path/to/download-client-downloads:/downloads #optional
     ports:
-      - $available_port:64080 #optional
-      - 64443:64443 #optional
+      - 7878:7878
     restart: unless-stopped
 EOL
 
-        echo "Die Quassel Web Docker Compose-Datei wurde erstellt. Bitte passen Sie die Datei an Ihre Bedürfnisse an: $compose_file"
+        echo "Die radarr Docker Compose-Datei wurde erstellt. Bitte passen Sie die Datei an Ihre Bedürfnisse an: $compose_file"
     else
-        echo "Die Quassel Web Docker Compose-Datei existiert bereits: $compose_file"
+        echo "Die radarr Docker Compose-Datei existiert bereits: $compose_file"
     fi
-
-    # Docker Compose ausführen
-    run_command "docker-compose -f $compose_file up -d" "sudo"
 fi
+
+# Container nach dem Systemstart ausführen
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+
+exec_command="docker-compose -f $compose_file up -d --remove-orphans"
+stop_command="docker-compose -f $compose_file down"
+
+# Service-Datei erstellen
+cat > "$service_file" <<EOL
+[Unit]
+Description=radarr
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$config_dir
+ExecStart=$exec_command
+ExecStop=$stop_command
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# systemd aktualisieren und Service registrieren
+sudo systemctl daemon-reload
+sudo systemctl enable radarr.service
+sudo systemctl start radarr.service
