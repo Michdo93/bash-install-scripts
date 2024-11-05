@@ -58,7 +58,7 @@ echo \
   run_command "tee /etc/apt/sources.list.d/docker.list > /dev/null" "$sudo_available"
 run_command "apt update" "$sudo_available"
 
-run_command "apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y" "$sudo_available"
+run_command "apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose docker-compose-plugin -y" "$sudo_available"
 
 run_command "groupadd docker" "$sudo_available"
 run_command "usermod -aG docker $USER" "$sudo_available"
